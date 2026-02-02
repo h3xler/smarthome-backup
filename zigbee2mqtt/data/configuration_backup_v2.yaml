@@ -1,0 +1,34 @@
+# Home Assistant Entegrasyonu (Otomatik keşif için şart)
+homeassistant: true
+
+# İzin verme (Yeni cihaz eklerken true yapılır, güvenlik için false başlatıyoruz)
+permit_join: false
+
+# Web Arayüzü Ayarları (Docker port mapping için host 0.0.0.0 olmalı)
+frontend:
+  port: 8080
+  host: 0.0.0.0
+
+# MQTT Broker Bağlantısı
+mqtt:
+  base_topic: zigbee2mqtt
+  # ÖNEMLİ: Docker içinde olduğumuz için 'localhost' DEĞİL 'mosquitto' yazıyoruz
+  server: 'mqtt://mosquitto:1883'
+
+# SLZB-06M Bağlantı Ayarları (VPN Üzerinden)
+serial:
+  # BURAYA DİKKAT: Not ettiğin VPN IP adresini (10.8.0.2) buraya yaz
+  port: 'tcp://10.8.0.2:6638'
+  # SLZB-06M'in yeni versiyonları 'ember' sürücüsü kullanır
+  adapter: ember
+
+# Gelişmiş Ayarlar
+advanced:
+  log_level: info
+  # Zigbee kanalı (WiFi ile çakışmaması için 25 önerilir, varsayılan 11'dir)
+  channel: 25
+  network_key: GENERATE
+  pan_id: GENERATE
+  ext_pan_id: GENERATE
+  # Cihaz yokken sürekli restart atıp logu şişirmesin diye availability kapattık (Opsiyonel)
+  availability_checks: false

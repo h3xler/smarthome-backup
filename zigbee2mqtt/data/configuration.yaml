@@ -1,0 +1,69 @@
+homeassistant:
+  enabled: true
+frontend:
+  enabled: true
+  port: 8080
+  host: 0.0.0.0
+  auth_token: o989898O*
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://mosquitto:1883
+  user: ozan
+  password: o989898O*
+  keepalive: 60
+  reject_unauthorized: true
+  version: 4
+serial:
+  port: tcp://10.8.0.2:6638
+  adapter: ember
+advanced:
+  log_level: info
+  channel: 25
+  network_key:
+    - 73
+    - 255
+    - 19
+    - 133
+    - 20
+    - 90
+    - 45
+    - 71
+    - 105
+    - 183
+    - 3
+    - 208
+    - 192
+    - 196
+    - 102
+    - 39
+  pan_id: 57451
+  ext_pan_id:
+    - 140
+    - 200
+    - 172
+    - 58
+    - 208
+    - 130
+    - 146
+    - 139
+  availability_checks: false
+version: 5
+devices:
+  '0xa4c1383c83380ed2':
+    friendly_name: Salon_insan_sensoru
+  '0xa4c13886a6b25554':
+    friendly_name: salon_ledler
+  '0xa4c13859c39bec8d':
+    friendly_name: mutfak_insan_sensoru
+  '0xf082c0fffe00c153':
+    friendly_name: Melis_oda_isigi
+  '0xa4c138a502f8a531':
+    friendly_name: banyo_insan_sensoru
+  '0xa4c138237cd8182b':
+    friendly_name: Giris_insan_sensoru
+  '0xf082c0fffe130f00':
+    friendly_name: banyo_isigi
+  '0xf082c0fffe0113db':
+    friendly_name: girisin_isigi
+  '0x8c65a3fffed55cbd':
+    friendly_name: Mutfak_su_sizinti_sensoru

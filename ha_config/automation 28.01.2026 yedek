@@ -1,0 +1,445 @@
+- id: '1769110525068'
+  alias: salon insan sensoru isik ac
+  description: ''
+  triggers:
+  - type: illuminance
+    device_id: ce144e0f763afe34782b794a807ee68f
+    entity_id: c0ab42d4f8dd396ba8f2ea17a5847d94
+    domain: sensor
+    trigger: device
+    below: 3
+  - type: occupied
+    device_id: ce144e0f763afe34782b794a807ee68f
+    entity_id: 3431ff3e1d2c5040395ef4b16139f1f8
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.salon_insan_sensoru_illuminance
+    enabled: true
+    below: 3
+  - condition: time
+    after: '10:00:00'
+    before: '23:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    - sun
+  - type: is_occupied
+    condition: device
+    device_id: ce144e0f763afe34782b794a807ee68f
+    entity_id: 3431ff3e1d2c5040395ef4b16139f1f8
+    domain: binary_sensor
+  actions:
+  - type: turn_on
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: 38f1127c97591d411fa8cf6179cac397
+    domain: switch
+  mode: single
+- id: '1769195054732'
+  alias: salon ledlerini kimse yoksa kapat
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.salon_insan_sensoru_occupancy
+    to:
+    - 'off'
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: 38f1127c97591d411fa8cf6179cac397
+    domain: switch
+  - type: turn_off
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: b3dfc9c989d34217fcbc1a3b2361bfbf
+    domain: switch
+  - type: turn_off
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: 380b13857e2397631e019b7535e8c7e0
+    domain: switch
+  mode: single
+- id: '1769198415832'
+  alias: girisin isigini ac insan algiladiginda
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.giris_insan_sensoru_occupancy
+    to:
+    - 'on'
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.giris_insan_sensoru_illuminance
+    enabled: true
+    below: 3
+  - condition: time
+    after: '10:00:00'
+    before: '23:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    - sun
+  actions:
+  - type: turn_on
+    device_id: c243f4e0b997466cbf16302ae6d01cfc
+    entity_id: 09f78bc4be6343023ddc2f74dbed6030
+    domain: switch
+  mode: single
+- id: '1769198525558'
+  alias: girisin isigini kimse yoksa kapat
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.giris_insan_sensoru_occupancy
+    to:
+    - 'off'
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: c243f4e0b997466cbf16302ae6d01cfc
+    entity_id: 09f78bc4be6343023ddc2f74dbed6030
+    domain: switch
+  mode: single
+- id: '1769198817487'
+  alias: mutfagin isigini ac insan algiladiginda
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.mutfak_insan_sensoru_occupancy
+    to:
+    - 'on'
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.mutfak_insan_sensoru_illuminance
+    enabled: true
+    below: 3
+  actions:
+  - type: turn_on
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: 5ad51a9f3f44eb80bda385eb094b03a9
+    domain: switch
+  mode: single
+- id: '1769199674574'
+  alias: mutfakta kimse yoksa kapat
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.mutfak_insan_sensoru_occupancy
+    to:
+    - 'off'
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: 5ad51a9f3f44eb80bda385eb094b03a9
+    domain: switch
+  - type: turn_off
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: b3c881bef16d030fc6a6a3100482a781
+    domain: switch
+  - type: turn_off
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: bae25852069235995ea12e25e861898c
+    domain: switch
+  mode: single
+- id: '1769202534089'
+  alias: banyo isigini ac insan algilandiginda
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.banyo_insan_sensoru_occupancy
+    to:
+    - 'on'
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.banyo_insan_sensoru_illuminance
+    enabled: true
+    below: 3
+  - condition: not
+    conditions:
+    - condition: time
+      after: 02:00:00
+      before: 07:00:00
+      weekday:
+      - sun
+      - mon
+      - tue
+      - wed
+      - thu
+      - fri
+      - sat
+  actions:
+  - type: turn_on
+    device_id: 76685cab46f2cb09ed2cc5dd14c095d8
+    entity_id: c8cd994bf09b684aa025fa6126c2117b
+    domain: light
+  mode: single
+- id: '1769202612265'
+  alias: banyonun isigini kimse yoksa kapat
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.banyo_insan_sensoru_occupancy
+    to:
+    - 'off'
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 76685cab46f2cb09ed2cc5dd14c095d8
+    entity_id: c8cd994bf09b684aa025fa6126c2117b
+    domain: light
+  mode: single
+- id: '1769205746953'
+  alias: Su Sizintisi Oldugunda Ozan'a Bildir
+  description: ''
+  triggers:
+  - type: moist
+    device_id: f1bfcbd83ae5ee6cd77958c1f5033148
+    entity_id: 865f7d64c69fe9e09adf6a85cebb756f
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - device_id: 6cc280d647eb9bf918ee7c97d10e51e6
+    domain: mobile_app
+    type: notify
+    message: Mutfakta Su Sızıntısı
+    title: Acil Suyu Kapat
+  - action: input_boolean.turn_on
+    metadata: {}
+    target:
+      entity_id: input_boolean.mutfakta_su_sizintisi_var
+    data: {}
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 10
+      milliseconds: 0
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id: input_boolean.mutfakta_su_sizintisi_var
+    data: {}
+  mode: single
+- id: '1769282293958'
+  alias: yatak odası ışığı 45 dakika açık kaldığında sesli uyar ve kapat
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 8a0b90ccbef377e5ac434094cf7ec9f5
+    entity_id: d575500fd5a107a7893957f4039b25d3
+    domain: switch
+    trigger: device
+    for:
+      hours: 0
+      minutes: 45
+      seconds: 0
+  conditions: []
+  actions:
+  - action: notify.google_assistant_sdk
+    data:
+      message: yatakodasıışığınıkırkbeşdakikadıraçıkbıraktın
+  - action: notify.mobile_app_sm_s901e
+    metadata: {}
+    data:
+      message: Yatak odasının ışığı 45 dakikadır açık
+      title: Işık Açık Kaldı
+  - action: input_boolean.turn_on
+    metadata: {}
+    target:
+      entity_id: input_boolean.yatak_odasinin_isigi_acik_kaldi
+    data: {}
+  - delay:
+      hours: 0
+      minutes: 15
+      seconds: 0
+      milliseconds: 0
+  - action: notify.google_assistant_sdk
+    data:
+      message: yatakodasınınışığıbirsaattiraçıkkapatılıyor
+  - type: turn_off
+    device_id: 8a0b90ccbef377e5ac434094cf7ec9f5
+    entity_id: d575500fd5a107a7893957f4039b25d3
+    domain: switch
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id: input_boolean.yatak_odasinin_isigi_acik_kaldi
+    data: {}
+  mode: single
+- id: '1769284045459'
+  alias: melisin odasının ışığı 45 dakika açık kaldığında sesli uyar ve kapat
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 11df2859e25f65c9715977024bbf6f12
+    entity_id: bf1afe254c1e4aa063fb4107fbbaeb91
+    domain: light
+    trigger: device
+    for:
+      hours: 0
+      minutes: 45
+      seconds: 0
+  conditions: []
+  actions:
+  - action: notify.google_assistant_sdk
+    data:
+      message: melisinodasınınışığınıkırkbeşdakikadıraçıkbıraktın
+  - action: notify.mobile_app_sm_s901e
+    metadata: {}
+    data:
+      message: Melisin odasının ışığı 45 dakikadır açık
+      title: Işık Açık Kaldı
+  - action: input_boolean.turn_on
+    metadata: {}
+    target:
+      entity_id: input_boolean.melisin_odasinin_isigi_acik_kaldi
+    data: {}
+  - delay:
+      hours: 0
+      minutes: 15
+      seconds: 0
+      milliseconds: 0
+  - action: notify.google_assistant_sdk
+    data:
+      message: melisinodasınınışığıbirsaattiraçıkkapatılıyor
+  - type: turn_off
+    device_id: 11df2859e25f65c9715977024bbf6f12
+    entity_id: bf1afe254c1e4aa063fb4107fbbaeb91
+    domain: light
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id: input_boolean.melisin_odasinin_isigi_acik_kaldi
+    data: {}
+  mode: single
+- id: '1769284164255'
+  alias: oturma odası ışığı 45 dakika açık kaldığında sesli uyar ve kapat
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 24b84f43c6e111acd0c57eccfb46ed1e
+    entity_id: 71fbf03b739e3a96aa03aa871b723d65
+    domain: switch
+    trigger: device
+    for:
+      hours: 0
+      minutes: 45
+      seconds: 0
+  conditions: []
+  actions:
+  - action: notify.google_assistant_sdk
+    data:
+      message: oturmaodasıışığınıkırkbeşdakikadıraçıkbıraktın
+  - action: notify.mobile_app_sm_s901e
+    metadata: {}
+    data:
+      message: Oturma odasının ışığı 45 dakikadır açık
+      title: Işık Açık Kaldı
+  - action: input_boolean.turn_on
+    metadata: {}
+    target:
+      entity_id: input_boolean.oturma_odasinin_isigi_acik_kaldi
+    data: {}
+  - delay:
+      hours: 0
+      minutes: 15
+      seconds: 0
+      milliseconds: 0
+  - action: notify.google_assistant_sdk
+    data:
+      message: oturmaodasınınışığıbirsaattiraçıkkapatılıyor
+  - type: turn_off
+    device_id: 24b84f43c6e111acd0c57eccfb46ed1e
+    entity_id: 71fbf03b739e3a96aa03aa871b723d65
+    domain: switch
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id: input_boolean.oturma_odasinin_isigi_acik_kaldi
+    data: {}
+  mode: single
+- id: '1769287706999'
+  alias: eve hoşgeldin
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - scene.start_using_automation_family_go_home
+  conditions: []
+  actions:
+  - action: notify.google_assistant_sdk
+    metadata: {}
+    data:
+      message: hello
+  mode: single
+- id: '1769292902023'
+  alias: Keskin ailesi üyesi evine hoşgeldin
+  description: ''
+  triggers:
+  - type: opened
+    device_id: 47c98e7016c94d726bf6d6cab9f0b641
+    entity_id: 2d77551834e17b7db96033c096601cae
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - type: is_not_occupied
+    condition: device
+    device_id: 02edba65295292b3bcd13a7ef167ba78
+    entity_id: 830f16f3a05173b0110a9a59061630f3
+    domain: binary_sensor
+    enabled: true
+  - type: is_not_occupied
+    condition: device
+    device_id: 8ad77f951bd0382ea565c44d8d54daf3
+    entity_id: 354ce086c80bc1c2ec1aaeab66389579
+    domain: binary_sensor
+  - type: is_not_occupied
+    condition: device
+    device_id: 0f8a4c151c90f4fdaa115521e5ff1ee7
+    entity_id: 39ce6b5d11fc145529773ad7b77c954e
+    domain: binary_sensor
+    enabled: true
+  - type: is_not_occupied
+    condition: device
+    device_id: ce144e0f763afe34782b794a807ee68f
+    entity_id: 3431ff3e1d2c5040395ef4b16139f1f8
+    domain: binary_sensor
+    enabled: true
+  actions:
+  - action: notify.google_assistant_sdk
+    metadata: {}
+    data:
+      message: evinehoşgeldin
+    enabled: false
+  - action: input_boolean.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: input_boolean.eve_hosgeldin_rutin_tetikleyici
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 8
+      milliseconds: 0
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id: input_boolean.eve_hosgeldin_rutin_tetikleyici
+    data: {}
+  mode: single

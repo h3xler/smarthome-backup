@@ -1,0 +1,13 @@
+# Hassas klasör ve dosyalar
+ha_config/.storage/
+ha_config/SERVICE_ACCOUNT.json
+secrets.yaml
+wireguard/
+
+# Log ve DB dosyaları
+*.db
+*.db-shm
+*.db-wal
+*.log
+npm/
+letsencrypt/
