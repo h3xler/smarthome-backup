@@ -181,6 +181,18 @@
     - binary_sensor.banyo_insan_sensoru_occupancy
     to:
     - 'on'
+  - trigger: state
+    entity_id:
+    - sensor.banyo_insan_sensoru_debug_distance
+    to:
+  - trigger: state
+    entity_id:
+    - number.banyo_insan_sensoru_entry_distance
+    to:
+  - trigger: state
+    entity_id:
+    - sensor.banyo_insan_sensoru_target_distance
+    to:
   conditions:
   - condition: numeric_state
     entity_id: sensor.banyo_insan_sensoru_illuminance
