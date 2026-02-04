@@ -41,79 +41,77 @@ google_assistant:
 
 mqtt:
   # ---------------------------------------------------------
-    # BUTTONLAR (Mevcut Diafon Ayarların)
-      # ---------------------------------------------------------
-        button:
-            - unique_id: "apartman_kapi_ac"
-                  name: "Apartman Kapısı"
-                        command_topic: "ev/diafon/komut"
-                              payload_press: "KAPI_AC"
-                                    icon: "mdi:door"
-                                          qos: 0
-                                                retain: false
+  # BUTTONLAR
+  # ---------------------------------------------------------
+  button:
+    - unique_id: "diafon_kapi_ac"
+      name: "Kapıyı Aç"
+      command_topic: "ev/diafon/komut"
+      payload_press: "KAPI_AC"
+      icon: "mdi:door-open"
 
-                                                  # ---------------------------------------------------------
-                                                    # SWITCHLER (Vana + Diafon)
-                                                      # ---------------------------------------------------------
-                                                        switch:
-                                                            # 1. Mevcut Diafon
-                                                                - unique_id: "diafon_konusma_modu"
-                                                                      name: "Diafon Konuşma Modu"
-                                                                            command_topic: "ev/diafon/komut"
-                                                                                  payload_on: "KONUS_BASLA"
-                                                                                        payload_off: "KONUS_BITIR"
-                                                                                              state_topic: "ev/diafon/durum"
-                                                                                                    icon: "mdi:microphone"
+  # ---------------------------------------------------------
+  # SWITCHLER
+  # ---------------------------------------------------------
+  switch:
+    - unique_id: "diafon_konusma_modu"
+      name: "Diafon Konuşma Modu"
+      command_topic: "ev/diafon/komut"
+      payload_on: "HAT_AC"
+      payload_off: "HAT_KAPA"
+      state_topic: "ev/diafon/hat"
+      state_on: "ON"
+      state_off: "OFF"
+      icon: "mdi:phone-in-talk"
+      optimistic: false
 
-                                                                                                        # 2. YENİ: Mutfak Su Vanası (SCRIPT DESTEKLI MOD)
-                                                                                                            - name: "Mutfak Su Vanası"
-                                                                                                                  unique_id: "shelly_mutfak_vana"
-                                                                                                                        
-                                                                                                                              # Komut Gönderme
-                                                                                                                                    command_topic: "shelly-mutfak/rpc"
-                                                                                                                                          # İpucu: "src" değerini değiştirmek şart değil ama log takibi için unique yapmak iyidir.
-                                                                                                                                                payload_on: '{"id":1, "src":"ha-switch", "method":"Switch.Set", "params":{"id":0,"on":true}}'
-                                                                                                                                                      payload_off: '{"id":1, "src":"ha-switch", "method":"Switch.Set", "params":{"id":0,"on":false}}'
-                                                                                                                                                            
-                                                                                                                                                                  # --- KRİTİK DEĞİŞİKLİK ---
-                                                                                                                                                                        # Shelly Plus, durumu buraya JSON olarak basar:
-                                                                                                                                                                              state_topic: "shelly-mutfak/status/switch:0"
-                                                                                                                                                                                    
-                                                                                                                                                                                          # Gelen JSON: {"id":0, "source":"switch", "output":true, "apower":0, ...}
-                                                                                                                                                                                                # output:true ise 'on', değilse 'off' yapıyoruz.
-                                                                                                                                                                                                      value_template: "{{ 'on' if value_json.output == true else 'off' }}"
-                                                                                                                                                                                                            
-                                                                                                                                                                                                                  state_on: "on"
-                                                                                                                                                                                                                        state_off: "off"
-                                                                                                                                                                                                                              
-                                                                                                                                                                                                                                    optimistic: false
-                                                                                                                                                                                                                                          qos: 1
-                                                                                                                                                                                                                                                retain: false
-                                                                                                                                                                                                                                                      icon: "mdi:valve"
+    - name: "Mutfak Su Vanası"
+      unique_id: "shelly_mutfak_vana"
+      command_topic: "shelly-mutfak/rpc"
+      payload_on: '{"id":1, "src":"ha-switch", "method":"Switch.Set", "params":{"id":0,"on":true}}'
+      payload_off: '{"id":1, "src":"ha-switch", "method":"Switch.Set", "params":{"id":0,"on":false}}'
+      state_topic: "shelly-mutfak/status/switch:0"
+      value_template: "{{ 'on' if value_json.output == true else 'off' }}"
+      state_on: "on"
+      state_off: "off"
+      icon: "mdi:valve"
 
-                                                                                                                                                                                                                                                        # ---------------------------------------------------------
-                                                                                                                                                                                                                                                          # SENSÖRLER (Akış + Diafon)
-                                                                                                                                                                                                                                                            # ---------------------------------------------------------
-                                                                                                                                                                                                                                                              binary_sensor:
-                                                                                                                                                                                                                                                                  # 1. Mevcut Diafon Zili
-                                                                                                                                                                                                                                                                      - unique_id: "diafon_zil_caliyor"
-                                                                                                                                                                                                                                                                            name: "Kapı Zili"
-                                                                                                                                                                                                                                                                                  state_topic: "ev/diafon/zil"
-                                                                                                                                                                                                                                                                                        payload_on: "ON"
-                                                                                                                                                                                                                                                                                              payload_off: "OFF"
-                                                                                                                                                                                                                                                                                                    device_class: sound
-                                                                                                                                                                                                                                                                                                          icon: "mdi:bell-ring"
+  # ---------------------------------------------------------
+  # BINARY SENSÖRLER
+  # ---------------------------------------------------------
+  binary_sensor:
+    - unique_id: "diafon_zil"
+      name: "Kapı Zili"
+      state_topic: "ev/diafon/zil"
+      payload_on: "ON"
+      payload_off: "OFF"
+      device_class: sound
+      icon: "mdi:bell-ring"
 
-                                                                                                                                                                                                                                                                                                              # 2. YENİ: Mutfak Su Akışı (GÜNCELLENDİ)
-                                                                                                                                                                                                                                                                                                                  - name: "Mutfak Su Akışı"
-                                                                                                                                                                                                                                                                                                                        unique_id: "mqtt_flow_sensor_mutfak"
-                                                                                                                                                                                                                                                                                                                              state_topic: "shelly-mutfak/events/flow"
-                                                                                                                                                                                                                                                                                                                                    payload_on: "ON"
-                                                                                                                                                                                                                                                                                                                                          payload_off: "OFF"
-                                                                                                                                                                                                                                                                                                                                                # --- EKLENEN KRİTİK BÖLÜM ---
-                                                                                                                                                                                                                                                                                                                                                      availability_topic: "shelly-mutfak/online"
-                                                                                                                                                                                                                                                                                                                                                            payload_available: "true"
-                                                                                                                                                                                                                                                                                                                                                                  payload_not_available: "false"
-                                                                                                                                                                                                                                                                                                                                                                        # ----------------------------
-                                                                                                                                                                                                                                                                                                                                                                              device_class: moving
-                                                                                                                                                                                                                                                                                                                                                                                    icon: "mdi:water-pump"
+    - name: "Mutfak Su Akışı"
+      unique_id: "mqtt_flow_sensor_mutfak"
+      state_topic: "shelly-mutfak/events/flow"
+      payload_on: "ON"
+      payload_off: "OFF"
+      availability_topic: "shelly-mutfak/online"
+      payload_available: "true"
+      payload_not_available: "false"
+      device_class: moving
+      icon: "mdi:water-pump"
+
+  # ---------------------------------------------------------
+  # SENSÖRLER
+  # ---------------------------------------------------------
+  sensor:
+    - unique_id: "diafon_durum"
+      name: "Diafon Durumu"
+      state_topic: "ev/diafon/durum"
+      icon: "mdi:phone-classic"
+
+    # YENİ: Mikrofon ses seviyesi
+    - unique_id: "diafon_ses_seviye"
+      name: "Diafon Ses Seviyesi"
+      state_topic: "ev/diafon/ses_seviye"
+      unit_of_measurement: "dB"
+      icon: "mdi:microphone"
+      state_class: measurement

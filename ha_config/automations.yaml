@@ -65,52 +65,23 @@
     domain: switch
   mode: single
 - id: '1769198415832'
-  alias: girisin isigini ac insan algiladiginda
-  description: ''
+  alias: Diafon Zil Bildirimi
+  description: Kapı zili çaldığında telefona bildirim gönderir
   triggers:
-  - trigger: state
-    entity_id:
-    - binary_sensor.giris_insan_sensoru_occupancy
-    to:
-    - 'on'
-  - trigger: state
-    entity_id:
-    - binary_sensor.giris_insan_sensoru_occupancy
-    from:
-    to:
-    enabled: false
-  - trigger: state
-    entity_id:
-    - sensor.giris_insan_sensoru_illuminance
-    from:
-    to:
-    enabled: false
-  - trigger: state
-    entity_id:
-    - sensor.giris_insan_sensoru_debug_distance
-    from:
-    to:
-  conditions:
-  - condition: numeric_state
-    entity_id: sensor.giris_insan_sensoru_illuminance
-    enabled: true
-    below: 4
-  - condition: time
-    after: '10:00:00'
-    before: '23:00:00'
-    weekday:
-    - mon
-    - tue
-    - wed
-    - thu
-    - fri
-    - sat
-    - sun
+  - entity_id: binary_sensor.diafon_zil
+    to: 'on'
+    trigger: state
+  conditions: []
   actions:
-  - type: turn_on
-    device_id: c243f4e0b997466cbf16302ae6d01cfc
-    entity_id: 09f78bc4be6343023ddc2f74dbed6030
-    domain: switch
+  - data:
+      title: "\U0001F514 Kapı Zili"
+      message: Kapıda biri var!
+      data:
+        tag: diafon_zil
+        actions:
+        - action: KAPI_AC
+          title: "\U0001F513 Kapıyı Aç"
+    action: notify.mobile_app_telefon
   mode: single
 - id: '1769198525558'
   alias: girisin isigini kimse yoksa kapat
@@ -546,3 +517,17 @@
         data:
           message: "\U0001F6D1 Tank dolum süresi (2.5 saat) aşıldı."
           title: Su Güvenliği
+- id: '1770159734450'
+  alias: Diafon Bildirim Kapı Aç
+  description: Bildirimden Kapıyı Aç butonuna basınca çalışır
+  triggers:
+  - event_type: mobile_app_notification_action
+    event_data:
+      action: KAPI_AC
+    trigger: event
+  conditions: []
+  actions:
+  - target:
+      entity_id: button.diafon_kapi_ac
+    action: button.press
+  mode: single
