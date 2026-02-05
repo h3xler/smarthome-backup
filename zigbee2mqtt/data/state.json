@@ -4,7 +4,7 @@
         "tamper": false,
         "battery_low": false,
         "target_distance": 0,
-        "illuminance": 1,
+        "illuminance": 0,
         "entry_sensitivity": 80,
         "entry_distance": 4.5,
         "departure_delay": 5,
@@ -24,11 +24,11 @@
         "distance_report_mode": "Normal"
     },
     "0xa4c1383c83380ed2": {
-        "occupancy": true,
+        "occupancy": false,
         "tamper": false,
         "battery_low": false,
-        "target_distance": 2.3,
-        "illuminance": 107,
+        "target_distance": 0,
+        "illuminance": 0,
         "entry_sensitivity": 80,
         "block_time": 0.5,
         "debug_mode": "OFF",
@@ -45,20 +45,20 @@
         "distance_report_mode": "Normal",
         "entry_distance": 3.9,
         "departure_delay": 5,
-        "entry_filter_time": 0
+        "entry_filter_time": 0.05
     },
     "0xa4c138a502f8a531": {
         "occupancy": false,
         "tamper": false,
         "battery_low": false,
-        "illuminance": 34,
+        "illuminance": 0,
         "target_distance": 0,
         "shield_range": 1,
         "detection_range": 4.8,
         "entry_sensitivity": 80,
         "entry_distance": 3.7,
         "departure_delay": 5,
-        "entry_filter_time": 0,
+        "entry_filter_time": 0.2,
         "block_time": 1,
         "debug_mode": "OFF",
         "debug_distance": 0,
@@ -75,7 +75,7 @@
         "occupancy": false,
         "tamper": false,
         "battery_low": false,
-        "illuminance": 7,
+        "illuminance": 0,
         "target_distance": 0,
         "entry_sensitivity": 80,
         "entry_distance": 5.8,
@@ -96,7 +96,7 @@
         "distance_report_mode": "Normal"
     },
     "0xf082c0fffe130f00": {
-        "state": "ON",
+        "state": "OFF",
         "update": {
             "state": "idle",
             "installed_version": 4110,
@@ -116,7 +116,7 @@
         }
     },
     "0xa4c13886a6b25554": {
-        "state_left": "ON",
+        "state_left": "OFF",
         "countdown_left": 0,
         "state_right": "OFF",
         "countdown_right": 0,
