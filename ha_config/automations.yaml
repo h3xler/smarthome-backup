@@ -531,3 +531,178 @@
       entity_id: button.diafon_kapi_ac
     action: button.press
   mode: single
+- id: '1770292562407'
+  alias: Diafon Zil Bildirimi - LiveKit
+  description: Kapı zili çaldığında telefona LiveKit linki ile bildirim gönderir
+  triggers:
+  - entity_id: binary_sensor.diafon_zil
+    to: 'on'
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      title: "\U0001F514 Kapı Zili"
+      message: Kapıda biri var! Tıklayarak konuşun.
+      data:
+        tag: diafon_zil
+        channel: doorbell
+        importance: high
+        ttl: 0
+        priority: high
+        url: https://livekit.hexler.pp.ua/intercom?auto=1
+        clickAction: https://livekit.hexler.pp.ua/intercom?auto=1
+        actions:
+        - action: URI
+          title: "\U0001F3A4 Konuş"
+          uri: https://livekit.hexler.pp.ua/intercom?auto=1
+        - action: KAPI_AC
+          title: "\U0001F513 Kapıyı Aç"
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1770292602935'
+  alias: Diafon Bildirim Kapı Aç
+  description: Bildirimden Kapıyı Aç butonuna basınca çalışır
+  triggers:
+  - event_type: mobile_app_notification_action
+    event_data:
+      action: KAPI_AC
+    trigger: event
+  conditions: []
+  actions:
+  - data:
+      topic: ev/diafon/komut
+      payload: KAPI_AC
+    action: mqtt.publish
+  - data:
+      title: ✅ Kapı Açıldı
+      message: Kapı açma komutu gönderildi
+      data:
+        tag: diafon_kapi
+        ttl: 0
+        priority: high
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1770292628923'
+  alias: Diafon Zil Bitti Bildirimi Temizle
+  description: Zil durduğunda bildirim tag'ini temizler
+  triggers:
+  - entity_id: binary_sensor.diafon_zil
+    to: 'off'
+    for:
+      seconds: 30
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      message: clear_notification
+      data:
+        tag: diafon_zil
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1770292663055'
+  alias: Diafon Kritik Zil Bildirimi - iphone
+  description: iOS için kritik bildirim (sesli modda olmasa da çalar)
+  triggers:
+  - entity_id: binary_sensor.diafon_zil
+    to: 'on'
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      title: "\U0001F514 Kapı Zili"
+      message: Kapıda biri var!
+      data:
+        push:
+          sound:
+            name: default
+            critical: 1
+            volume: 1
+        url: https://livekit.hexler.pp.ua/intercom?auto=1
+    action: notify.mobile_app_iphone
+  mode: single
+- id: '1770294985222'
+  alias: Alarm Kuruldu Bildirimi
+  description: Gemini ile alarm kurulduğunda bildirim gönder
+  triggers:
+  - topic: ev/alarm/komut
+    trigger: mqtt
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.payload_json.action == ''ARM'' }}'
+  actions:
+  - data:
+      title: "\U0001F512 Alarm Kuruldu"
+      message: '{{ trigger.payload_json.person | default(''Bilinmiyor'') }} alarmı
+        kurdu'
+      data:
+        tag: alarm_status
+        ttl: 0
+        priority: high
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1770295015904'
+  alias: Alarm İptal Bildirimi
+  description: Gemini ile alarm iptal edildiğinde bildirim gönder
+  triggers:
+  - topic: ev/alarm/komut
+    trigger: mqtt
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.payload_json.action == ''DISARM'' }}'
+  actions:
+  - data:
+      title: "\U0001F513 Alarm İptal Edildi"
+      message: Hoş geldin {{ trigger.payload_json.person | default('') }}!
+      data:
+        tag: alarm_status
+        ttl: 0
+        priority: high
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1770295033192'
+  alias: Kapı Sensörü Gemini Tetikle
+  description: Kapı açıldığında Gemini agent'ı tetikle
+  triggers:
+  - entity_id: binary_sensor.kapi_sensoru
+    to: 'on'
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      topic: ev/kapi_sensoru
+      payload: 'ON'
+    action: mqtt.publish
+  - delay:
+      seconds: 30
+  - data:
+      topic: ev/kapi_sensoru
+      payload: 'OFF'
+    action: mqtt.publish
+  mode: single
+- id: '1770295235504'
+  alias: Yetkisiz Giriş Uyarısı
+  description: Alarm aktifken kapı açılırsa uyar
+  triggers:
+  - entity_id: binary_sensor.kapi_sensoru
+    to: 'on'
+    trigger: state
+  conditions:
+  - condition: state
+    entity_id: sensor.alarm_durumu
+    state: ARMED
+  actions:
+  - data:
+      title: "\U0001F6A8 ALARM!"
+      message: Kapı açıldı ama alarm aktif!
+      data:
+        channel: alarm
+        importance: max
+        ttl: 0
+        priority: high
+        push:
+          sound:
+            name: default
+            critical: 1
+            volume: 1
+    action: notify.mobile_app_telefon
+  mode: single

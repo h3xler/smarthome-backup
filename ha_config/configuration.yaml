@@ -99,6 +99,12 @@ mqtt:
       device_class: moving
       icon: "mdi:water-pump"
 
+    - name: "Gemini Agent"
+      state_topic: "ev/gemini/durum"
+      payload_on: "ONLINE"
+      payload_off: "OFFLINE"
+      unique_id: "gemini_agent_status"  
+
   # ---------------------------------------------------------
   # SENSÖRLER
   # ---------------------------------------------------------
@@ -107,6 +113,12 @@ mqtt:
       name: "Diafon Durumu"
       state_topic: "ev/diafon/durum"
       icon: "mdi:phone-classic"
+
+    # Alarm Durumu
+    - unique_id: "alarm_durumu"
+      name: "Alarm Durumu"
+      state_topic: "ev/alarm/durum"
+        
 
     # YENİ: Mikrofon ses seviyesi
     - unique_id: "diafon_ses_seviye"

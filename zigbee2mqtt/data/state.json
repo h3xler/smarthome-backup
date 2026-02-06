@@ -72,11 +72,11 @@
         "distance_report_mode": "Normal"
     },
     "0xa4c138237cd8182b": {
-        "occupancy": false,
+        "occupancy": true,
         "tamper": false,
         "battery_low": false,
         "illuminance": 0,
-        "target_distance": 0,
+        "target_distance": 3.17,
         "entry_sensitivity": 80,
         "entry_distance": 5.8,
         "departure_delay": 5,
@@ -120,7 +120,7 @@
         "countdown_left": 0,
         "state_right": "OFF",
         "countdown_right": 0,
-        "state_center": "OFF",
+        "state_center": "ON",
         "countdown_center": 0
     },
     "0xf082c0fffe00c153": {
