@@ -4,9 +4,9 @@
         "tamper": false,
         "battery_low": false,
         "target_distance": 0,
-        "illuminance": 0,
+        "illuminance": 1,
         "entry_sensitivity": 80,
-        "entry_distance": 4.5,
+        "entry_distance": 5.8,
         "departure_delay": 5,
         "entry_filter_time": 0.2,
         "block_time": 0.5,
@@ -17,18 +17,19 @@
         "sensor": "on",
         "cline": "",
         "status_indication": "OFF",
-        "radar_sensitivity": 80,
-        "shield_range": 2,
-        "detection_range": 5.5,
+        "radar_sensitivity": 90,
+        "shield_range": 3.3,
+        "detection_range": 5.8,
         "equipment_status": 1,
-        "distance_report_mode": "Normal"
+        "distance_report_mode": "Normal",
+        "linkquality": 132
     },
     "0xa4c1383c83380ed2": {
-        "occupancy": false,
+        "occupancy": true,
         "tamper": false,
         "battery_low": false,
-        "target_distance": 0,
-        "illuminance": 0,
+        "target_distance": 2.39,
+        "illuminance": 101,
         "entry_sensitivity": 80,
         "block_time": 0.5,
         "debug_mode": "OFF",
@@ -39,25 +40,26 @@
         "cline": "",
         "status_indication": "OFF",
         "radar_sensitivity": 80,
-        "shield_range": 0.3,
-        "detection_range": 3.9,
+        "shield_range": 0.6,
+        "detection_range": 5.7,
         "equipment_status": 1,
         "distance_report_mode": "Normal",
-        "entry_distance": 3.9,
-        "departure_delay": 5,
-        "entry_filter_time": 0.05
+        "entry_distance": 5.7,
+        "departure_delay": 30,
+        "entry_filter_time": 0.05,
+        "linkquality": 164
     },
     "0xa4c138a502f8a531": {
-        "occupancy": false,
+        "occupancy": true,
         "tamper": false,
         "battery_low": false,
-        "illuminance": 0,
-        "target_distance": 0,
+        "illuminance": 34,
+        "target_distance": 1.86,
         "shield_range": 1,
-        "detection_range": 4.8,
-        "entry_sensitivity": 80,
-        "entry_distance": 3.7,
-        "departure_delay": 5,
+        "detection_range": 2.9,
+        "entry_sensitivity": 40,
+        "entry_distance": 2.9,
+        "departure_delay": 15,
         "entry_filter_time": 0.2,
         "block_time": 1,
         "debug_mode": "OFF",
@@ -69,18 +71,19 @@
         "status_indication": "OFF",
         "radar_sensitivity": 60,
         "equipment_status": 1,
-        "distance_report_mode": "Normal"
+        "distance_report_mode": "Normal",
+        "linkquality": 176
     },
     "0xa4c138237cd8182b": {
-        "occupancy": true,
+        "occupancy": false,
         "tamper": false,
         "battery_low": false,
-        "illuminance": 0,
-        "target_distance": 3.17,
-        "entry_sensitivity": 80,
-        "entry_distance": 5.8,
+        "illuminance": 2,
+        "target_distance": 0,
+        "entry_sensitivity": 70,
+        "entry_distance": 5.4,
         "departure_delay": 5,
-        "entry_filter_time": 0.05,
+        "entry_filter_time": 0.1,
         "block_time": 1,
         "debug_mode": "OFF",
         "debug_distance": 0,
@@ -89,21 +92,23 @@
         "sensor": "on",
         "cline": "",
         "status_indication": "OFF",
-        "radar_sensitivity": 80,
+        "radar_sensitivity": 40,
         "shield_range": 0.8,
-        "detection_range": 5.8,
+        "detection_range": 5.4,
         "equipment_status": 1,
-        "distance_report_mode": "Normal"
+        "distance_report_mode": "Normal",
+        "linkquality": 232
     },
     "0xf082c0fffe130f00": {
-        "state": "OFF",
+        "state": "ON",
         "update": {
             "state": "idle",
             "installed_version": 4110,
             "latest_version": 4110,
             "latest_source": "https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/images/Sonoff/zigbeeminil2_100E_stand_ota_file.ota",
             "latest_release_notes": null
-        }
+        },
+        "linkquality": 172
     },
     "0xf082c0fffe0113db": {
         "state": "OFF",
@@ -113,25 +118,19 @@
             "latest_version": 4110,
             "latest_source": "https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/images/Sonoff/zigbeeminil2_100E_stand_ota_file.ota",
             "latest_release_notes": null
-        }
+        },
+        "linkquality": 232
     },
     "0xa4c13886a6b25554": {
-        "state_left": "OFF",
+        "state_left": "ON",
         "countdown_left": 0,
         "state_right": "OFF",
         "countdown_right": 0,
-        "state_center": "ON",
-        "countdown_center": 0
-    },
-    "0xf082c0fffe00c153": {
-        "state": "OFF",
-        "update": {
-            "state": "idle",
-            "installed_version": 4110,
-            "latest_version": 4110,
-            "latest_source": "https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/images/Sonoff/zigbeeminil2_100E_stand_ota_file.ota",
-            "latest_release_notes": null
-        }
+        "state_center": "OFF",
+        "countdown_center": 0,
+        "linkquality": 144,
+        "power_on_behavior_left": "on",
+        "switch_type": "toggle"
     },
     "0x8c65a3fffed55cbd": {
         "update": {
@@ -141,6 +140,21 @@
             "latest_source": "https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/images/Sonoff/snzb-05p_v1.0.2.ota",
             "latest_release_notes": null
         },
-        "battery": 100
+        "battery": 100,
+        "linkquality": 144,
+        "water_leak": false,
+        "battery_low": false
+    },
+    "0xf082c0fffe00c153": {
+        "state": "OFF",
+        "power_on_behavior": "off",
+        "update": {
+            "state": "idle",
+            "installed_version": 4110,
+            "latest_version": 4110,
+            "latest_source": "https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/images/Sonoff/zigbeeminil2_100E_stand_ota_file.ota",
+            "latest_release_notes": null
+        },
+        "linkquality": 176
     }
 }

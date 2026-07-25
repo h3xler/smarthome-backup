@@ -1,7 +1,12 @@
 """Support for Tuya select."""
 
 from __future__ import annotations
-from typing import cast
+from typing import cast, Self
+from dataclasses import dataclass
+from tuya_device_handlers.definition.select import (
+    SelectDefinition,
+    get_default_definition,
+)
 from homeassistant.const import EntityCategory, Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -15,9 +20,11 @@ from .multi_manager.multi_manager import (
     XTDevice,
 )
 from .const import (
+    CROSS_CATEGORY_DEVICE_DESCRIPTOR,
     TUYA_DISCOVERY_NEW,
     XTDPCode,
     XTMultiManagerPostSetupCallbackPriority,
+    LOGGER,  # noqa: F401
 )
 from .entity import (
     XTEntity,
@@ -26,10 +33,94 @@ from .entity import (
 from .ha_tuya_integration.tuya_integration_imports import (
     TuyaSelectEntity,
     TuyaSelectEntityDescription,
-    TuyaDPCodeEnumWrapper,
+    TuyaCustomerDevice,
+    TuyaDPCodeTypeInformationWrapper,
+    TuyaEnumTypeInformation,
 )
 
+class XTEnumWithFixedValuesTypeInformation(TuyaEnumTypeInformation):
 
+    @classmethod
+    def _from_json(
+        cls,
+        dpcode: str,
+        type_data: str,
+        *,
+        report_type: str | None,
+    ) -> Self | None:
+        """Load JSON string and return an EnumTypeInformation object."""
+        return cls(
+            dpcode=dpcode,
+            type_data=type_data,
+            report_type=report_type,
+            range=[],
+        )
+
+    @classmethod
+    def find_dpcode(
+        cls,
+        device: TuyaCustomerDevice,
+        dpcodes: str | tuple[str, ...] | None,
+        *,
+        prefer_function: bool = False,
+    ) -> Self | None:
+        """Find type information for a matching DP code."""
+        if dpcodes is None:
+            return None
+
+        if not isinstance(dpcodes, tuple):
+            dpcodes = (dpcodes,)
+
+        lookup_tuple = (
+            (device.function, device.status_range)
+            if prefer_function
+            else (device.status_range, device.function)
+        )
+
+        for dpcode in dpcodes:
+            report_type = (
+                status_range.report_type
+                if (status_range := device.status_range.get(dpcode))
+                else None
+            )
+            type_cls = cls
+            for device_specs in lookup_tuple:
+                if dpcode in device_specs:
+                    if type_information := type_cls._from_json(  # noqa: SLF001
+                            dpcode=dpcode,
+                            type_data="{}",
+                            report_type=report_type,
+                        ):
+                        return type_information
+        return None
+
+class XTDPCodeEnumWrapperWithFixedOptions[T = str](TuyaDPCodeTypeInformationWrapper[XTEnumWithFixedValuesTypeInformation, str, T]):
+    _DPTYPE = XTEnumWithFixedValuesTypeInformation
+    options: list[str]
+    
+    def __init__(
+        self, dpcode: str, type_information: XTEnumWithFixedValuesTypeInformation
+    ) -> None:
+        """Init DPCodeEnumWrapper."""
+        super().__init__(dpcode, type_information)
+
+    def set_fixed_options(self, options: list[str]):
+        self.options = options
+        self.type_information.range = options
+
+def xt_get_default_definition(
+    device: TuyaCustomerDevice,
+    description: TuyaSelectEntityDescription,
+) -> SelectDefinition | None:
+    definition = get_default_definition(device=device, dpcode=description.key)
+    if definition is None and description.options is not None:
+        if wrapper := XTDPCodeEnumWrapperWithFixedOptions.find_dpcode(device=device, dpcodes=description.key, prefer_function=True):
+            wrapper.set_fixed_options(description.options)
+            return SelectDefinition(select_wrapper=wrapper)
+    return definition
+
+
+@dataclass(frozen=True)
 class XTSelectEntityDescription(TuyaSelectEntityDescription):
     """Describe an Tuya select entity."""
 
@@ -39,18 +130,20 @@ class XTSelectEntityDescription(TuyaSelectEntityDescription):
     # duplicate the entity if handled by another integration
     ignore_other_dp_code_handler: bool = False
 
+    dont_send_to_cloud: bool = False
+
     def get_entity_instance(
         self,
         device: XTDevice,
         device_manager: MultiManager,
         description: XTSelectEntityDescription,
-        dpcode_wrapper: TuyaDPCodeEnumWrapper,
+        definition: SelectDefinition,
     ) -> XTSelectEntity:
         return XTSelectEntity(
             device=device,
             device_manager=device_manager,
             description=XTSelectEntityDescription(**description.__dict__),
-            dpcode_wrapper=dpcode_wrapper,
+            definition=definition,
         )
 
 
@@ -71,6 +164,7 @@ TEMPERATURE_SELECTS: tuple[XTSelectEntityDescription, ...] = (
 # default instructions set of each category end up being a select.
 # https://developer.tuya.com/en/docs/iot/standarddescription?id=K9i5ql6waswzq
 SELECTS: dict[str, tuple[XTSelectEntityDescription, ...]] = {
+    CROSS_CATEGORY_DEVICE_DESCRIPTOR: (),
     "cz": (
         XTSelectEntityDescription(
             key=XTDPCode.SOLAR_EN_TOTAL,
@@ -103,7 +197,7 @@ SELECTS: dict[str, tuple[XTSelectEntityDescription, ...]] = {
             entity_category=EntityCategory.CONFIG,
         ),
         XTSelectEntityDescription(
-            key=XTDPCode.MODE2,
+            key=XTDPCode.MODE_CAP,
             translation_key="dj_mode",
             entity_category=EntityCategory.CONFIG,
         ),
@@ -194,18 +288,14 @@ SELECTS: dict[str, tuple[XTSelectEntityDescription, ...]] = {
             entity_category=EntityCategory.CONFIG,
         ),
         XTSelectEntityDescription(
-            key=XTDPCode.CLEAN,
-            translation_key="cat_litter_box_clean",
-            entity_category=EntityCategory.CONFIG,
-        ),
-        XTSelectEntityDescription(
-            key=XTDPCode.EMPTY,
-            translation_key="cat_litter_box_empty",
-            entity_category=EntityCategory.CONFIG,
-        ),
-        XTSelectEntityDescription(
             key=XTDPCode.WORK_MODE,
             translation_key="cat_litter_box_work_mode",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        # Ti+ / DOEL ti+TpCTbt-01: weight unit selector
+        XTSelectEntityDescription(
+            key=XTDPCode.UNIT_SWITCH,
+            translation_key="unit_switch",
             entity_category=EntityCategory.CONFIG,
         ),
     ),
@@ -293,7 +383,7 @@ async def async_setup_entry(
                     device, this_platform
                 )
                 for dpcode in generic_dpcodes:
-                    descriptor = XTSelectEntityDescription(
+                    description = XTSelectEntityDescription(
                         key=dpcode,
                         translation_key="xt_generic_select",
                         translation_placeholders={
@@ -302,12 +392,13 @@ async def async_setup_entry(
                         entity_registry_enabled_default=False,
                         entity_registry_visible_default=False,
                     )
-                    if dpcode_wrapper := TuyaDPCodeEnumWrapper.find_dpcode(
-                        device, descriptor.key, prefer_function=True
-                    ):
+                    if definition := xt_get_default_definition(device, description):
                         entities.append(
                             XTSelectEntity.get_entity_instance(
-                                descriptor, device, hass_data.manager, dpcode_wrapper
+                                description=description,
+                                device=device,
+                                device_manager=hass_data.manager,
+                                definition=definition,
                             )
                         )
         async_add_entities(entities)
@@ -338,7 +429,10 @@ async def async_setup_entry(
                         )
                     entities.extend(
                         XTSelectEntity.get_entity_instance(
-                            description, device, hass_data.manager, dpcode_wrapper
+                            description=description,
+                            device=device,
+                            device_manager=hass_data.manager,
+                            definition=definition,
                         )
                         for description in category_descriptions
                         if (
@@ -350,15 +444,18 @@ async def async_setup_entry(
                                 externally_managed_dpcodes,
                             )
                             and (
-                                dpcode_wrapper := TuyaDPCodeEnumWrapper.find_dpcode(
-                                    device, description.key, prefer_function=True
+                                definition := xt_get_default_definition(
+                                    device, description
                                 )
                             )
                         )
                     )
                     entities.extend(
                         XTSelectEntity.get_entity_instance(
-                            description, device, hass_data.manager, dpcode_wrapper
+                            description=description,
+                            device=device,
+                            device_manager=hass_data.manager,
+                            definition=definition,
                         )
                         for description in category_descriptions
                         if (
@@ -370,8 +467,8 @@ async def async_setup_entry(
                                 externally_managed_dpcodes,
                             )
                             and (
-                                dpcode_wrapper := TuyaDPCodeEnumWrapper.find_dpcode(
-                                    device, description.key, prefer_function=True
+                                definition := xt_get_default_definition(
+                                    device, description
                                 )
                             )
                         )
@@ -401,17 +498,20 @@ class XTSelectEntity(XTEntity, TuyaSelectEntity):
         device: XTDevice,
         device_manager: MultiManager,
         description: XTSelectEntityDescription,
-        dpcode_wrapper: TuyaDPCodeEnumWrapper,
+        definition: SelectDefinition,
     ) -> None:
         """Init XT select."""
         super(XTSelectEntity, self).__init__(
-            device, device_manager, description, dpcode_wrapper=dpcode_wrapper
+            device=device,
+            device_manager=device_manager,
+            description=description,
+            definition=definition,
         )
         super(XTEntity, self).__init__(
-            device,
-            device_manager,  # type: ignore
-            description,
-            dpcode_wrapper,
+            device=device,
+            device_manager=device_manager,  # type: ignore
+            description=description,
+            definition=definition,
         )
         self.device = device
         self.device_manager = device_manager
@@ -428,17 +528,30 @@ class XTSelectEntity(XTEntity, TuyaSelectEntity):
         description: XTSelectEntityDescription,
         device: XTDevice,
         device_manager: MultiManager,
-        dpcode_wrapper: TuyaDPCodeEnumWrapper,
+        definition: SelectDefinition,
     ) -> XTSelectEntity:
         if hasattr(description, "get_entity_instance") and callable(
             getattr(description, "get_entity_instance")
         ):
             return description.get_entity_instance(
-                device, device_manager, description, dpcode_wrapper
+                device=device,
+                device_manager=device_manager,
+                description=description,
+                definition=definition,
             )
         return XTSelectEntity(
-            device,
-            device_manager,
-            XTSelectEntityDescription(**description.__dict__),
-            dpcode_wrapper,
+            device=device,
+            device_manager=device_manager,
+            description=XTSelectEntityDescription(**description.__dict__),
+            definition=definition,
         )
+
+    async def async_select_option(self, option: str) -> None:
+        """Change the selected option."""
+        if hasattr(self.entity_description, "dont_send_to_cloud") and self.entity_description.dont_send_to_cloud:  # type: ignore
+            self.device.status[self.entity_description.key] = option
+            self.device_manager.multi_device_listener.update_device(
+                self.device, [self.entity_description.key]
+            )
+        else:
+            await super().async_select_option(option)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import cast, Callable, Any
+from typing import cast, Callable
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
 )
@@ -11,6 +11,11 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util.json import json_loads
+
+from tuya_device_handlers.definition.binary_sensor import (
+    BinarySensorDefinition,
+    get_default_definition,
+)
 
 # from homeassistant.helpers.typing import UndefinedType
 from .util import (
@@ -33,11 +38,6 @@ from .ha_tuya_integration.tuya_integration_imports import (
     TuyaBinarySensorEntityDescription,
     TuyaDPType,
     TuyaDPCode,
-    TuyaDPCodeWrapper,
-    TuyaBinarySensorCustomDPCodeWrapper,
-    TuyaDPCodeBooleanWrapper,
-    TuyaDPCodeBitmapBitWrapper,
-    TuyaDPCodeIntegerWrapper,
 )
 from .entity import (
     XTEntity,
@@ -57,24 +57,23 @@ class XTBinarySensorEntityDescription(TuyaBinarySensorEntityDescription):
     # This DPCode represent the online status of a device
     device_online: bool = False
 
-    # Custom is_on function
-    is_on: Callable[[Any], bool | None] | None = None
-
     # duplicate the entity if handled by another integration
     ignore_other_dp_code_handler: bool = False
+
+    is_on: Callable | None = None
 
     def get_entity_instance(
         self,
         device: XTDevice,
         device_manager: MultiManager,
         description: XTBinarySensorEntityDescription,
-        dpcode_wrapper: TuyaDPCodeWrapper,
+        definition: BinarySensorDefinition,
     ) -> XTBinarySensorEntity:
         return XTBinarySensorEntity(
             device=device,
             device_manager=device_manager,
             description=XTBinarySensorEntityDescription(**description.__dict__),
-            dpcode_wrapper=dpcode_wrapper,
+            definition=definition,
         )
 
 
@@ -177,6 +176,20 @@ BINARY_SENSORS: dict[str, tuple[XTBinarySensorEntityDescription, ...]] = {
             translation_key="store_full_notify",
             entity_registry_enabled_default=True,
         ),
+        # Ti+ / DOEL ti+TpCTbt-01: fires true when auto-clean cycle completes
+        XTBinarySensorEntityDescription(
+            key=XTDPCode.IN_CLEAN,
+            translation_key="in_clean",
+            entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,
+        ),
+        # Ti+ / DOEL ti+TpCTbt-01: scheduled clean triggered flag
+        XTBinarySensorEntityDescription(
+            key=XTDPCode.DP_TIME_CLEAR_FLAG,
+            translation_key="dp_time_clear_flag",
+            entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,
+        ),
     ),
     # QT-08W Solar Intelligent Water Valve
     "sfkzq": (
@@ -264,33 +277,17 @@ BINARY_SENSORS["videolock"] = BINARY_SENSORS["jtmspro"]
 BINARY_SENSORS["jtmsbh"] = BINARY_SENSORS["jtmspro"]
 
 
-def _get_dpcode_wrapper(
+def xt_get_default_definition(
     device: XTDevice,
     description: XTBinarySensorEntityDescription,
-) -> TuyaDPCodeWrapper | None:
-    """Get DPCode wrapper for an entity description."""
-    dpcode = description.dpcode or description.key
-    if description.bitmap_key is not None:
-        return TuyaDPCodeBitmapBitWrapper.find_dpcode(
-            device, dpcode, bitmap_key=description.bitmap_key
-        )
-
-    if bool_type := TuyaDPCodeBooleanWrapper.find_dpcode(device, dpcode):
-        return bool_type
-    
-    if description.is_on is not None:
-        if int_type := TuyaDPCodeIntegerWrapper.find_dpcode(device, dpcode):
-            return int_type
-
-    # Legacy / compatibility
-    if dpcode not in device.status:
-        return None
-    return TuyaBinarySensorCustomDPCodeWrapper(
-        dpcode,
-        description.on_value
-        if isinstance(description.on_value, set)
-        else {description.on_value},
+) -> BinarySensorDefinition | None:
+    return get_default_definition(
+        device=device,
+        dpcode=description.dpcode or description.key,
+        bitmap_key=description.bitmap_key,
+        on_value=description.on_value,
     )
+
 
 def _get_bitmap_bit_mask(
     device: XTDevice, dpcode: str, bitmap_key: str | None
@@ -365,15 +362,15 @@ async def async_setup_entry(
                                     entity_registry_enabled_default=False,
                                     entity_registry_visible_default=False,
                                 )
-                                if dpcode_wrapper := _get_dpcode_wrapper(
+                                if definition := xt_get_default_definition(
                                     device, descriptor
                                 ):
                                     entities.append(
                                         XTBinarySensorEntity.get_entity_instance(
-                                            descriptor,
-                                            device,
-                                            hass_data.manager,
-                                            dpcode_wrapper,
+                                            description=descriptor,
+                                            device=device,
+                                            device_manager=hass_data.manager,
+                                            definition=definition,
                                         )
                                     )
                         else:
@@ -386,15 +383,16 @@ async def async_setup_entry(
                                 entity_registry_enabled_default=False,
                                 entity_registry_visible_default=False,
                             )
-                            if dpcode_wrapper := _get_dpcode_wrapper(
-                                device, descriptor
+                            if definition := xt_get_default_definition(
+                                device,
+                                descriptor,
                             ):
                                 entities.append(
                                     XTBinarySensorEntity.get_entity_instance(
-                                        descriptor,
-                                        device,
-                                        hass_data.manager,
-                                        dpcode_wrapper,
+                                        description=descriptor,
+                                        device=device,
+                                        device_manager=hass_data.manager,
+                                        definition=definition,
                                     )
                                 )
         async_add_entities(entities)
@@ -408,11 +406,8 @@ async def async_setup_entry(
             return
         for device_id in device_ids:
             if device := hass_data.manager.device_map.get(device_id, None):
-                if (
-                    category_descriptions
-                    := XTEntityDescriptorManager.get_category_descriptors(
-                        supported_descriptors, device.category
-                    )
+                if category_descriptions := XTEntityDescriptorManager.get_category_descriptors(
+                    supported_descriptors, device.category
                 ):
                     externally_managed_dpcodes = (
                         XTEntityDescriptorManager.get_category_keys(
@@ -428,42 +423,51 @@ async def async_setup_entry(
                         )
                     entities.extend(
                         XTBinarySensorEntity.get_entity_instance(
-                            description, device, hass_data.manager, dpcode_wrapper
+                            description=description,
+                            device=device,
+                            device_manager=hass_data.manager,
+                            definition=definition,
                         )
                         for description in category_descriptions
                         if (
                             XTEntity.supports_description(
-                                device,
-                                this_platform,
-                                description,
-                                True,
-                                externally_managed_dpcodes,
-                                COMPOUND_KEY,
+                                device=device,
+                                platform=this_platform,
+                                description=description,
+                                first_pass=True,
+                                externally_managed_dpcodes=externally_managed_dpcodes,
+                                key_fields=COMPOUND_KEY,
                             )
                             and (
-                                dpcode_wrapper := _get_dpcode_wrapper(
-                                    device, XTBinarySensorEntityDescription(**description.__dict__)
+                                definition := xt_get_default_definition(
+                                    device=device,
+                                    description=XTBinarySensorEntityDescription(
+                                        **description.__dict__
+                                    ),
                                 )
                             )
                         )
                     )
                     entities.extend(
                         XTBinarySensorEntity.get_entity_instance(
-                            description, device, hass_data.manager, dpcode_wrapper
+                            description, device, hass_data.manager, definition
                         )
                         for description in category_descriptions
                         if (
                             XTEntity.supports_description(
-                                device,
-                                this_platform,
-                                description,
-                                False,
-                                externally_managed_dpcodes,
-                                COMPOUND_KEY,
+                                device=device,
+                                platform=this_platform,
+                                description=description,
+                                first_pass=False,
+                                externally_managed_dpcodes=externally_managed_dpcodes,
+                                key_fields=COMPOUND_KEY,
                             )
                             and (
-                                dpcode_wrapper := _get_dpcode_wrapper(
-                                    device, XTBinarySensorEntityDescription(**description.__dict__)
+                                definition := xt_get_default_definition(
+                                    device=device,
+                                    description=XTBinarySensorEntityDescription(
+                                        **description.__dict__
+                                    ),
                                 )
                             )
                         )
@@ -488,39 +492,42 @@ async def async_setup_entry(
 class XTBinarySensorEntity(XTEntity, TuyaBinarySensorEntity):
     """XT Binary Sensor Entity."""
 
-    _entity_description: XTBinarySensorEntityDescription
+    entity_description: XTBinarySensorEntityDescription
 
     def __init__(
         self,
         device: XTDevice,
         device_manager: MultiManager,
         description: XTBinarySensorEntityDescription,
-        dpcode_wrapper: TuyaDPCodeWrapper,
+        definition: BinarySensorDefinition,
     ) -> None:
         """Init Tuya binary sensor."""
-        super(XTBinarySensorEntity, self).__init__(device, device_manager, description)
+        super(XTBinarySensorEntity, self).__init__(
+            device=device,
+            device_manager=device_manager,  # type: ignore
+            description=description,
+            definition=definition,
+        )
         super(XTEntity, self).__init__(
-            device,
-            device_manager,  # type: ignore
-            description,
-            dpcode_wrapper,
+            device=device,
+            device_manager=device_manager,  # type: ignore
+            description=description,
+            definition=definition,
         )
         self.device = device
         self.device_manager = device_manager
-        self._entity_description = description
+        self.entity_description = description # type: ignore
 
     @property
     def is_on(self) -> bool | None:
-        if self._entity_description.is_on is not None:
-            # Use custom is_on function
-            is_on = self._entity_description.is_on(
-                self._dpcode_wrapper.read_device_status(self.device)
-            )
+        dpcode = self.entity_description.dpcode or self.entity_description.key
+        raw_value = self.device.status.get(dpcode)
+        if self.entity_description.is_on is not None and raw_value is not None:
+            is_on = self.entity_description.is_on(raw_value)
         else:
-            # Use default is_on function
             is_on = super().is_on
-        if is_on is not None and self._entity_description.device_online:
-            dpcode = self.entity_description.dpcode or self.entity_description.key
+        if is_on is not None and self.entity_description.device_online:
+            
             self.device.online_states[dpcode] = is_on
             self.device_manager.update_device_online_status(self.device.id)
         return is_on
@@ -530,38 +537,25 @@ class XTBinarySensorEntity(XTEntity, TuyaBinarySensorEntity):
         await super().async_added_to_hass()
         self.is_on  # Update the online status if needed
 
-    # def _name_internal(
-    #    self,
-    #    device_class_name: str | None,
-    #    platform_translations: dict[str, str],
-    # ) -> str | UndefinedType | None:
-    #    name = super()._name_internal(device_class_name=device_class_name, platform_translations=platform_translations)
-    #    if self.entity_description.translation_key != "xt_generic_binary_sensor":
-    #        LOGGER.warning(f"Returning name for {self.device.name}=>{self.entity_description.key}: '{name}'")
-    #    return name
-
-    # @property
-    # def _name_translation_key(self) -> str | None:
-    #    name = super()._name_translation_key
-    #    LOGGER.warning(f"Returning name TK for {self.device.name}=>{self.entity_description.key}: '{name}'")
-    #    return name
-
     @staticmethod
     def get_entity_instance(
         description: XTBinarySensorEntityDescription,
         device: XTDevice,
         device_manager: MultiManager,
-        dpcode_wrapper: TuyaDPCodeWrapper,
+        definition: BinarySensorDefinition,
     ) -> XTBinarySensorEntity:
         if hasattr(description, "get_entity_instance") and callable(
             getattr(description, "get_entity_instance")
         ):
             return description.get_entity_instance(
-                device, device_manager, description, dpcode_wrapper
+                device=device,
+                device_manager=device_manager,
+                description=description,
+                definition=definition,
             )
         return XTBinarySensorEntity(
-            device,
-            device_manager,
-            XTBinarySensorEntityDescription(**description.__dict__),
-            dpcode_wrapper,
+            device=device,
+            device_manager=device_manager,
+            description=XTBinarySensorEntityDescription(**description.__dict__),
+            definition=definition,
         )

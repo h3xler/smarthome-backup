@@ -48,15 +48,99 @@ from .const import (
     TUYA_SMART_APP,
     TUYA_RESPONSE_PLATFORM_URL,
     XTDiscoverySource,
+    XTLockingMechanism,
+    LOGGER,
 )
 from .multi_manager.shared.threading import (
     XTEventLoopProtector,
     XTConcurrencyManager,
 )
 from .multi_manager.managers.tuya_iot.xt_tuya_iot_openapi import XTIOTOpenAPI
+from .lib.tuya_iot.openapi import (
+    TuyaTokenInfo,
+)
 import custom_components.xtend_tuya.util as util
 import custom_components.xtend_tuya.multi_manager.multi_manager as mm
 import custom_components.xtend_tuya.multi_manager.shared.data_entry.shared_data_entry as data_entry
+import custom_components.xtend_tuya.climate as climate
+import custom_components.xtend_tuya.lock as lock
+import custom_components.xtend_tuya.cover as cover
+
+STEP_METHOD_PREFIX = "async_step_"
+
+
+class XTStepId(StrEnum):
+    INIT = "init"
+    CONFIGURE_API = "configure_api"
+    DEVICE_SETTINGS = "device_settings"
+    SELECT_CLIMATE_DEVICE = "select_climate_device"
+    CLIMATE_DEVICE_SETTINGS = "climate_device_settings"
+    SELECT_LOCK_DEVICE = "select_lock_device"
+    LOCK_DEVICE_SETTINGS = "lock_device_settings"
+    SELECT_COVER_DEVICE = "select_cover_device"
+    COVER_DEVICE_SETTINGS = "cover_device_settings"
+
+
+OPTION_STEP_DEFINITION: dict[XTStepId, tuple[str, list[Any], dict[str, Any], bool]] = {
+    XTStepId.INIT: (
+        "async_show_menu",
+        [],
+        {
+            "step_id": XTStepId.INIT,
+            "menu_options": [XTStepId.CONFIGURE_API, XTStepId.DEVICE_SETTINGS],
+        },
+        False,
+    ),
+    XTStepId.DEVICE_SETTINGS: (
+        "async_show_menu",
+        [],
+        {
+            "step_id": XTStepId.DEVICE_SETTINGS,
+            "menu_options": [
+                XTStepId.SELECT_CLIMATE_DEVICE,
+                XTStepId.SELECT_COVER_DEVICE,
+                XTStepId.SELECT_LOCK_DEVICE,
+            ],
+        },
+        False,
+    ),
+    XTStepId.SELECT_CLIMATE_DEVICE: (
+        "async_step_select_device",
+        [],
+        {
+            "user_input": None,
+            "has_preferences": {
+                f"{mm.XTDevice.XTDevicePreference.CLIMATE_DEVICE_ENTITY}": None
+            },
+            "next_step_id": XTStepId.CLIMATE_DEVICE_SETTINGS,
+        },
+        True,
+    ),
+    XTStepId.SELECT_LOCK_DEVICE: (
+        "async_step_select_device",
+        [],
+        {
+            "user_input": None,
+            "has_preferences": {
+                f"{mm.XTDevice.XTDevicePreference.LOCK_DEVICE_ENTITY}": None
+            },
+            "next_step_id": XTStepId.LOCK_DEVICE_SETTINGS,
+        },
+        True,
+    ),
+    XTStepId.SELECT_COVER_DEVICE: (
+        "async_step_select_device",
+        [],
+        {
+            "user_input": None,
+            "has_preferences": {
+                f"{mm.XTDevice.XTDevicePreference.COVER_DEVICE_ENTITIES}": None
+            },
+            "next_step_id": XTStepId.COVER_DEVICE_SETTINGS,
+        },
+        True,
+    ),
+}
 
 
 class XTConfigFlows:
@@ -121,23 +205,29 @@ class XTConfigFlows:
                 endpoint=data[CONF_ENDPOINT_OT],
                 access_id=data[CONF_ACCESS_ID_OT],
                 access_secret=data[CONF_ACCESS_SECRET_OT],
+                shared_token_info=TuyaTokenInfo(),
                 auth_type=data[CONF_AUTH_TYPE],
             )
             api.set_dev_channel("hass")
 
-            response = api.connect(
-                username=data[CONF_USERNAME_OT],
-                password=data[CONF_PASSWORD_OT],
-                country_code=data[CONF_COUNTRY_CODE],
-                schema=data[CONF_APP_TYPE],
-            )
+            try:
+                response = api.connect(
+                    username=data[CONF_USERNAME_OT],
+                    password=data[CONF_PASSWORD_OT],
+                    country_code=data[CONF_COUNTRY_CODE],
+                    schema=data[CONF_APP_TYPE],
+                )
 
-            if response.get(TUYA_RESPONSE_SUCCESS, False):
-                break
+                if response.get(TUYA_RESPONSE_SUCCESS, False):
+                    break
+            except Exception:
+                #We will get an exception if the credentials is incorrect
+                #This is expected and nothing needs to be done about it
+                pass
 
         return response, data
 
-    async def async_step_configure(
+    async def async_step_configure_api(
         self, user_input: dict[str, Any] | None = None
     ) -> tuple[XTConfigFlows.XTStepResultType, ConfigFlowResult | dict[str, str]]:
         """Manage the options."""
@@ -189,7 +279,7 @@ class XTConfigFlows:
         return (
             XTConfigFlows.XTStepResultType.SHOW_FORM,
             self.async_show_form(
-                step_id="configure",
+                step_id="configure_api",
                 data_schema=vol.Schema(
                     {
                         vol.Optional(
@@ -251,29 +341,442 @@ class XTConfigFlows:
         )
 
 
+class XTConfigFlowConfigurationManager:
+    @staticmethod
+    def get_configuration():
+        pass
+
+    def save_configuration(self, config: dict[str, Any]):
+        pass
+
+
 class TuyaOptionFlow(OptionsFlow):
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""
         self.handler = config_entry.entry_id
         self.xt_config_entry = config_entry
+        self.selected_device_id: str | None = None
+        self.selected_device_next_step_id: str | None = None
+        self._device_options: dict[str, str] = {}
+        self.multi_manager: mm.MultiManager | None = (
+            getattr(config_entry.runtime_data, "multi_manager")
+            if config_entry.runtime_data
+            else None
+        )
         if config_entry.options is not None:
             self.options = config_entry.options
         else:
             self.options = {}
 
-    async def async_step_init(
+    def __getattr__(self, name: str):
+        step_prefix: str = STEP_METHOD_PREFIX
+        step_postfix = name[len(step_prefix) :]
+        if name.startswith(step_prefix) and step_postfix in OPTION_STEP_DEFINITION:
+            if function := getattr(
+                self, OPTION_STEP_DEFINITION[XTStepId(step_postfix)][0]
+            ):
+
+                async def wrapper(
+                    user_input: dict[str, Any] | None = None,
+                ) -> ConfigFlowResult:
+                    if OPTION_STEP_DEFINITION[XTStepId(step_postfix)][3]:  # is_async
+                        return await function(
+                            *OPTION_STEP_DEFINITION[XTStepId(step_postfix)][1],
+                            **OPTION_STEP_DEFINITION[XTStepId(step_postfix)][2],
+                        )
+                    else:
+                        return function(
+                            *OPTION_STEP_DEFINITION[XTStepId(step_postfix)][1],
+                            **OPTION_STEP_DEFINITION[XTStepId(step_postfix)][2],
+                        )
+
+                return wrapper
+
+        raise AttributeError
+
+    async def async_step_configure_api(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         result_type, data = await XTConfigFlows(
             self, self.xt_config_entry
-        ).async_step_configure(user_input=user_input)
+        ).async_step_configure_api(user_input=user_input)
         match result_type:
             case XTConfigFlows.XTStepResultType.SHOW_FORM:
                 data = cast(ConfigFlowResult, data)
                 return data
             case XTConfigFlows.XTStepResultType.RESULT:
                 data = cast(dict[str, str], data)
-                return self.async_create_entry(title="", data=data)
+                # Preserve device_settings when updating API config
+                if "device_settings" in self.options:
+                    data["device_settings"] = self.options["device_settings"]
+                return self.async_create_entry(data=data)
+
+    async def async_step_select_device(
+        self,
+        user_input: dict[str, Any] | None = None,
+        has_preferences: dict[str, Any] | None = None,
+        next_step_id: str | None = None,
+    ) -> ConfigFlowResult:
+        """Handle device settings step."""
+        if next_step_id is not None:
+            self.selected_device_next_step_id = next_step_id
+        if user_input is not None:
+            self.selected_device_id = user_input.get("device")
+            if self.selected_device_id is not None:
+                if function := getattr(
+                    self,
+                    f"{STEP_METHOD_PREFIX}{self.selected_device_next_step_id}",
+                    None,
+                ):
+                    return await function()
+
+        # Get devices based on preferences
+        self._device_options = {}
+        if self.multi_manager is not None:
+            for (
+                device_id,
+                device,
+            ) in self.multi_manager.device_map.items():
+                if has_preferences is not None:
+                    for has_preference in has_preferences:
+                        preference_value = device.get_preference(has_preference, None)
+                        if preference_value is not None:
+                            if (
+                                has_preferences[has_preference] is None
+                                or preference_value == has_preferences[has_preference]
+                            ):
+                                self._device_options[device_id] = (
+                                    f"{device.name} ({device.id})"
+                                )
+
+        # Fallback if no devices found or runtime data not available
+        if not self._device_options:
+            return self.async_abort(reason="no_devices_found")
+
+        return self.async_show_form(
+            step_id="select_device",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("device"): vol.In(self._device_options),
+                }
+            ),
+        )
+
+    async def async_step_climate_device_settings(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle device configuration."""
+        if self.selected_device_id is None:
+            return self.async_abort(reason="device_not_selected")
+
+        if self.multi_manager is None:
+            return self.async_abort(reason="no_multi_manager")
+        # Get the configurable properties for the selected device
+        device: mm.XTDevice | None = self.multi_manager.device_map.get(
+            self.selected_device_id
+        )
+        if device is None:
+            return self.async_abort(reason="device_not_found")
+
+        climate_entity: climate.XTClimateEntity | None = device.get_preference(
+            mm.XTDevice.XTDevicePreference.CLIMATE_DEVICE_ENTITY
+        )
+        if climate_entity is None:
+            return self.async_abort(reason="climate_entity_not_found")
+
+        if user_input is not None:
+            # Update the configurable properties
+            new_config = climate.XTClimateConfigurableProperties()
+            new_config.current_temperature_value_multiplicator = user_input.get(
+                "current_temperature_value_multiplicator", None
+            )
+            if new_config.current_temperature_value_multiplicator == 0:
+                new_config.current_temperature_value_multiplicator = None
+            new_config.current_humidity_value_multiplicator = user_input.get(
+                "current_humidity_value_multiplicator", None
+            )
+            if new_config.current_humidity_value_multiplicator == 0:
+                new_config.current_humidity_value_multiplicator = None
+            new_config.target_temperature_value_multiplicator = user_input.get(
+                "target_temperature_value_multiplicator", None
+            )
+            if new_config.target_temperature_value_multiplicator == 0:
+                new_config.target_temperature_value_multiplicator = None
+            new_config.target_humidity_value_multiplicator = user_input.get(
+                "target_humidity_value_multiplicator", None
+            )
+            if new_config.target_humidity_value_multiplicator == 0:
+                new_config.target_humidity_value_multiplicator = None
+            climate_entity.set_configurable_properties(new_config)
+            await self.multi_manager.storage_manager.save_store()
+            self.multi_manager.multi_device_listener.update_device(device=device)
+            return self.async_create_entry(title="", data=self.options)
+
+        configurable_properties: climate.XTClimateConfigurableProperties | None = (
+            climate_entity.get_configurable_properties()
+        )
+        if configurable_properties is None:
+            return self.async_abort(reason="no_configurable_properties")
+
+        return self.async_show_form(
+            step_id="climate_device_settings",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        "current_temperature_value_multiplicator",
+                        default=(
+                            configurable_properties.current_temperature_value_multiplicator
+                            if configurable_properties.current_temperature_value_multiplicator
+                            is not None
+                            else vol.UNDEFINED
+                        ),
+                    ): vol.All(
+                        vol.Coerce(float),
+                    ),
+                    vol.Optional(
+                        "target_temperature_value_multiplicator",
+                        default=(
+                            configurable_properties.target_temperature_value_multiplicator
+                            if configurable_properties.target_temperature_value_multiplicator
+                            is not None
+                            else vol.UNDEFINED
+                        ),
+                    ): vol.All(
+                        vol.Coerce(float),
+                    ),
+                    vol.Optional(
+                        "current_humidity_value_multiplicator",
+                        default=(
+                            configurable_properties.current_humidity_value_multiplicator
+                            if configurable_properties.current_humidity_value_multiplicator
+                            is not None
+                            else vol.UNDEFINED
+                        ),
+                    ): vol.All(
+                        vol.Coerce(float),
+                    ),
+                    vol.Optional(
+                        "target_humidity_value_multiplicator",
+                        default=(
+                            configurable_properties.target_humidity_value_multiplicator
+                            if configurable_properties.target_humidity_value_multiplicator
+                            is not None
+                            else vol.UNDEFINED
+                        ),
+                    ): vol.All(
+                        vol.Coerce(float),
+                    ),
+                }
+            ),
+            description_placeholders={
+                "device_name": device.name or "",
+            },
+        )
+
+    async def async_step_lock_device_settings(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle device configuration."""
+        if self.selected_device_id is None:
+            return self.async_abort(reason="device_not_selected")
+
+        if self.multi_manager is None:
+            return self.async_abort(reason="no_multi_manager")
+        # Get the configurable properties for the selected device
+        device: mm.XTDevice | None = self.multi_manager.device_map.get(
+            self.selected_device_id
+        )
+        if device is None:
+            return self.async_abort(reason="device_not_found")
+
+        lock_entity: lock.XTLockEntity | None = device.get_preference(
+            mm.XTDevice.XTDevicePreference.LOCK_DEVICE_ENTITY
+        )
+        if lock_entity is None:
+            return self.async_abort(reason="lock_entity_not_found")
+
+        if user_input is not None:
+            # Update the configurable properties
+            new_config = lock.XTLockConfigurableProperties()
+            new_config.temporary_unlock_time = user_input.get(
+                "temporary_unlock_time", None
+            )
+            if (
+                new_config.temporary_unlock_time is not None
+                and new_config.temporary_unlock_time < 0.1
+            ):
+                new_config.temporary_unlock_time = None
+            new_config.lock_unlock_mecanism = user_input.get(
+                "lock_unlock_mecanism", XTLockingMechanism.AUTO
+            )
+            new_config.lock_status_dpcode = user_input.get("lock_status_dpcode", None)
+            if new_config.lock_status_dpcode == "None":
+                new_config.lock_status_dpcode = None
+            lock_entity.set_configurable_properties(new_config)
+            await self.multi_manager.storage_manager.save_store()
+            self.multi_manager.multi_device_listener.update_device(device=device)
+            return self.async_create_entry(title="", data=self.options)
+
+        configurable_properties: lock.XTLockConfigurableProperties | None = (
+            lock_entity.get_configurable_properties()
+        )
+        if configurable_properties is None:
+            return self.async_abort(reason="no_configurable_properties")
+
+        lock_status_dpcode_dict: dict[str, Any] = {
+            str(dpcode): dpcode
+            for dpcode in lock_entity.entity_description.unlock_status_list
+        }
+        lock_status_dpcode_dict["None"] = "None"
+
+        return self.async_show_form(
+            step_id="lock_device_settings",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        "temporary_unlock_time",
+                        default=(
+                            configurable_properties.temporary_unlock_time
+                            if configurable_properties.temporary_unlock_time is not None
+                            else vol.UNDEFINED
+                        ),
+                    ): vol.All(
+                        vol.Coerce(float),
+                    ),
+                    vol.Required(
+                        "lock_unlock_mecanism",
+                        default=(
+                            configurable_properties.lock_unlock_mecanism
+                            if configurable_properties.lock_unlock_mecanism is not None
+                            else XTLockingMechanism.AUTO
+                        ),
+                    ): vol.In(
+                        {
+                            lock_mecanism.value: lock_mecanism.get_human_name(
+                                lock_mecanism.value
+                            )
+                            for lock_mecanism in XTLockingMechanism
+                        }
+                    ),
+                    vol.Optional(
+                        "lock_status_dpcode",
+                        default=(
+                            configurable_properties.lock_status_dpcode
+                            if configurable_properties.lock_status_dpcode is not None
+                            else ""
+                        ),
+                    ): vol.In(
+                        lock_status_dpcode_dict
+                    ),
+                }
+            ),
+            description_placeholders={
+                "device_name": device.name or "",
+            },
+        )
+
+    async def async_step_cover_device_settings(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle device configuration."""
+        if self.selected_device_id is None:
+            return self.async_abort(reason="device_not_selected")
+
+        if self.multi_manager is None:
+            return self.async_abort(reason="no_multi_manager")
+        # Get the configurable properties for the selected device
+        device: mm.XTDevice | None = self.multi_manager.device_map.get(
+            self.selected_device_id
+        )
+        if device is None:
+            return self.async_abort(reason="device_not_found")
+
+        cover_entities: dict[str, cover.XTCoverEntity] | None = device.get_preference(
+            mm.XTDevice.XTDevicePreference.COVER_DEVICE_ENTITIES
+        )
+        if not cover_entities:
+            return self.async_abort(reason="cover_entity_not_found")
+
+        configurable_properties: cover.XTCoverConfigurableProperties | None = None
+        cover_entity: cover.XTCoverEntity | None = None
+        for key in cover_entities:
+            if cover_entities[key] is not None:
+                cover_entity = cover_entities[key]
+                configurable_properties = cover_entity.get_configurable_properties()
+                break
+        if cover_entity is None or configurable_properties is None:
+            return self.async_abort(reason="cover_entity_not_found")
+
+        if user_input is not None:
+            # Update the configurable properties
+            new_config = cover.XTCoverConfigurableProperties()
+            new_config.invert_control = user_input.get("invert_control", False)
+            new_config.invert_status = user_input.get("invert_status", False)
+            new_config.force_virtual_position = user_input.get(
+                "force_virtual_position", False
+            )
+            new_config.no_precise_position = user_input.get(
+                "no_precise_position", False
+            )
+            new_config.open_time = user_input.get("open_time", None)
+            if new_config.open_time is not None and new_config.open_time <= 0.1:
+                new_config.open_time = None
+            new_interval = user_input.get("update_interval")
+            if new_interval is not None:
+                new_config.update_interval = new_interval
+            if configurable_properties is not None:
+                new_config.virtual_position = configurable_properties.virtual_position
+            for dpcode in cover_entities:
+                cover_entities[dpcode].set_configurable_properties(new_config)
+            await self.multi_manager.storage_manager.save_store()
+            self.multi_manager.multi_device_listener.update_device(device=device)
+            return self.async_create_entry(title="", data=self.options)
+
+        if configurable_properties is None:
+            return self.async_abort(reason="no_configurable_properties")
+
+        return self.async_show_form(
+            step_id="cover_device_settings",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        "invert_control",
+                        default=bool(configurable_properties.invert_control),
+                    ): bool,
+                    vol.Optional(
+                        "invert_status",
+                        default=bool(configurable_properties.invert_status),
+                    ): bool,
+                    vol.Optional(
+                        "force_virtual_position",
+                        default=bool(configurable_properties.force_virtual_position),
+                    ): bool,
+                    vol.Optional(
+                        "open_time",
+                        default=(
+                            configurable_properties.open_time
+                            if configurable_properties.open_time is not None
+                            else vol.UNDEFINED
+                        ),
+                    ): vol.All(
+                        vol.Coerce(float),
+                    ),
+                    vol.Optional(
+                        "update_interval",
+                        default=(configurable_properties.update_interval),
+                    ): vol.All(
+                        vol.Coerce(float),
+                    ),
+                    vol.Optional(
+                        "no_precise_position",
+                        default=bool(configurable_properties.no_precise_position),
+                    ): bool,
+                }
+            ),
+            description_placeholders={
+                "device_name": device.name or "",
+            },
+        )
 
     async def async_step_configure(
         self, user_input: dict[str, Any] | None = None
@@ -295,13 +798,14 @@ class TuyaConfigFlow(ConfigFlow, domain=DOMAIN):
         self.config_entry_title: str = ""
 
     def __getattr__(self, name: str):
-        step_prefix: str = "async_step_"
+        step_prefix: str = STEP_METHOD_PREFIX
         if (
             name.startswith(step_prefix)
             and name[len(step_prefix) :] in XTDiscoverySource
         ):
             return self.generic_data_entry
         else:
+            LOGGER.warning(f"Error while finding step {name=}", stack_info=True)
             raise AttributeError
 
     @staticmethod
@@ -348,12 +852,12 @@ class TuyaConfigFlow(ConfigFlow, domain=DOMAIN):
             description_placeholders=placeholders,
         )
 
-    async def async_step_configure(
+    async def async_step_configure_api(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         result_type, data = await XTConfigFlows(
             self, config_entry=None
-        ).async_step_configure(user_input=user_input)
+        ).async_step_configure_api(user_input=user_input)
         match result_type:
             case XTConfigFlows.XTStepResultType.SHOW_FORM:
                 data = cast(ConfigFlowResult, data)
@@ -437,7 +941,7 @@ class TuyaConfigFlow(ConfigFlow, domain=DOMAIN):
 
         self.config_entry_data = entry_data
         self.config_entry_title = info.get("username", "")
-        return await self.async_step_configure()
+        return await self.async_step_configure_api()
 
     async def async_step_reauth(self, _: Mapping[str, Any]) -> ConfigFlowResult:
         """Handle initiation of re-authentication with Tuya."""

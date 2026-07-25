@@ -1,0 +1,129 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+# Veritabanı Kayıt Ayarları
+recorder:
+  # Verileri kaç gün saklayacağız? (Standart 10 gündür, 7 idealdir)
+  purge_keep_days: 7
+  # Diske yazma sıklığı (SSD ömrünü uzatır, performansı artırır)
+  commit_interval: 30
+  # Gereksiz verileri veritabanına HİÇ sokma
+  exclude:
+    domains:
+      - media_player # Şarkı değişimi loglarına gerek yok
+      - weblink
+      - updater
+    entity_globs:
+      - sensor.*_lqi   # Sinyal kalitesi geçmişine gerek yok
+      - sensor.*_linkquality
+      - sensor.clock* # Saat sensörünü kaydetme
+      - sensor.date*
+
+# 👇 HTTP AYARLARI (EN BAŞA, EN SOLA YAZILMALI) 👇
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.16.0.0/12  # Standart Docker Ağ Aralığı
+    - 127.0.0.1      # Localhost
+
+google_assistant:
+  project_id: homeassistanto-15024
+  service_account: !include SERVICE_ACCOUNT.json
+  report_state: true
+
+mqtt:
+  # ---------------------------------------------------------
+  # BUTTONLAR
+  # ---------------------------------------------------------
+  button:
+    - unique_id: "diafon_kapi_ac"
+      name: "Kapıyı Aç"
+      command_topic: "ev/diafon/komut"
+      payload_press: "KAPI_AC"
+      icon: "mdi:door-open"
+
+  # ---------------------------------------------------------
+  # SWITCHLER
+  # ---------------------------------------------------------
+  switch:
+    - unique_id: "diafon_konusma_modu"
+      name: "Diafon Konuşma Modu"
+      command_topic: "ev/diafon/komut"
+      payload_on: "HAT_AC"
+      payload_off: "HAT_KAPA"
+      state_topic: "ev/diafon/hat"
+      state_on: "ON"
+      state_off: "OFF"
+      icon: "mdi:phone-in-talk"
+      optimistic: false
+
+    - name: "Mutfak Su Vanası"
+      unique_id: "shelly_mutfak_vana"
+      command_topic: "shelly-mutfak/rpc"
+      payload_on: '{"id":1, "src":"ha-switch", "method":"Switch.Set", "params":{"id":0,"on":true}}'
+      payload_off: '{"id":1, "src":"ha-switch", "method":"Switch.Set", "params":{"id":0,"on":false}}'
+      state_topic: "shelly-mutfak/status/switch:0"
+      value_template: "{{ 'on' if value_json.output == true else 'off' }}"
+      state_on: "on"
+      state_off: "off"
+      icon: "mdi:valve"
+
+  # ---------------------------------------------------------
+  # BINARY SENSÖRLER
+  # ---------------------------------------------------------
+  binary_sensor:
+    - unique_id: "diafon_zil"
+      name: "Kapı Zili"
+      state_topic: "ev/diafon/zil"
+      payload_on: "ON"
+      payload_off: "OFF"
+      device_class: sound
+      icon: "mdi:bell-ring"
+
+    - name: "Mutfak Su Akışı"
+      unique_id: "mqtt_flow_sensor_mutfak"
+      state_topic: "shelly-mutfak/events/flow"
+      payload_on: "ON"
+      payload_off: "OFF"
+      availability_topic: "shelly-mutfak/online"
+      payload_available: "true"
+      payload_not_available: "false"
+      device_class: moving
+      icon: "mdi:water-pump"
+
+    - name: "Gemini Agent"
+      state_topic: "ev/gemini/durum"
+      payload_on: "ONLINE"
+      payload_off: "OFFLINE"
+      unique_id: "gemini_agent_status"  
+
+  # ---------------------------------------------------------
+  # SENSÖRLER
+  # ---------------------------------------------------------
+  sensor:
+    - unique_id: "diafon_durum"
+      name: "Diafon Durumu"
+      state_topic: "ev/diafon/durum"
+      icon: "mdi:phone-classic"
+
+    # Alarm Durumu
+    - unique_id: "alarm_durumu"
+      name: "Alarm Durumu"
+      state_topic: "ev/alarm/durum"
+        
+
+    # YENİ: Mikrofon ses seviyesi
+    - unique_id: "diafon_ses_seviye"
+      name: "Diafon Ses Seviyesi"
+      state_topic: "ev/diafon/ses_seviye"
+      unit_of_measurement: "dB"
+      icon: "mdi:microphone"
+      state_class: measurement

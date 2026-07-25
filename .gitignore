@@ -11,3 +11,10 @@ wireguard/
 *.log
 npm/
 letsencrypt/
+
+# Secrets - added 2026-07-25.
+# mosquitto/config/pwfile is the Mosquitto password file (uid 1883, mode 0600).
+# It is unreadable to the backup user, which made `git add` die fatal and silently
+# killed every backup for 5.5 months. A password file must never be in a git repo
+# that is pushed to GitHub, so it is untracked here rather than read with sudo.
+mosquitto/config/pwfile

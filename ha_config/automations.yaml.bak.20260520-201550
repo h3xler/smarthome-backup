@@ -1,0 +1,1165 @@
+- id: '1769110525068'
+  alias: salon insan sensoru isik ac
+  description: ''
+  triggers:
+  - type: illuminance
+    device_id: ce144e0f763afe34782b794a807ee68f
+    entity_id: c0ab42d4f8dd396ba8f2ea17a5847d94
+    domain: sensor
+    trigger: device
+    below: 3
+  - type: occupied
+    device_id: ce144e0f763afe34782b794a807ee68f
+    entity_id: 3431ff3e1d2c5040395ef4b16139f1f8
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.salon_insan_sensoru_illuminance
+    enabled: true
+    below: 3
+  - condition: time
+    after: '10:00:00'
+    before: '23:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    - sun
+  - type: is_occupied
+    condition: device
+    device_id: ce144e0f763afe34782b794a807ee68f
+    entity_id: 3431ff3e1d2c5040395ef4b16139f1f8
+    domain: binary_sensor
+  actions:
+  - type: turn_on
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: 38f1127c97591d411fa8cf6179cac397
+    domain: switch
+  mode: single
+- id: '1769195054732'
+  alias: salon ledlerini kimse yoksa kapat
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.salon_insan_sensoru_occupancy
+    to:
+    - 'off'
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: 38f1127c97591d411fa8cf6179cac397
+    domain: switch
+  - type: turn_off
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: b3dfc9c989d34217fcbc1a3b2361bfbf
+    domain: switch
+  - type: turn_off
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: 380b13857e2397631e019b7535e8c7e0
+    domain: switch
+  mode: single
+- id: '1769198415832'
+  alias: Diafon Zil Bildirimi
+  description: Kapı zili çaldığında telefona bildirim gönderir
+  triggers:
+  - entity_id: binary_sensor.diafon_zil
+    to: 'on'
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      title: "\U0001F514 Kapı Zili"
+      message: Kapıda biri var!
+      data:
+        tag: diafon_zil
+        actions:
+        - action: KAPI_AC
+          title: "\U0001F513 Kapıyı Aç"
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1769198525558'
+  alias: girisin isigini kimse yoksa kapat
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.giris_insan_sensoru_occupancy
+    to:
+    - 'off'
+  - trigger: numeric_state
+    entity_id:
+    - sensor.giris_insan_sensoru_target_distance
+    above: 0
+    below: 0
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: c243f4e0b997466cbf16302ae6d01cfc
+    entity_id: 09f78bc4be6343023ddc2f74dbed6030
+    domain: switch
+  mode: single
+- id: '1769198817487'
+  alias: mutfagin isigini ac insan algiladiginda
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.mutfak_insan_sensoru_occupancy
+    to:
+    - 'on'
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.mutfak_insan_sensoru_illuminance
+    enabled: true
+    below: 3
+  actions:
+  - type: turn_on
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: 5ad51a9f3f44eb80bda385eb094b03a9
+    domain: switch
+  mode: single
+- id: '1769199674574'
+  alias: mutfakta kimse yoksa kapat
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.mutfak_insan_sensoru_occupancy
+    to:
+    - 'off'
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: 5ad51a9f3f44eb80bda385eb094b03a9
+    domain: switch
+  - type: turn_off
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: b3c881bef16d030fc6a6a3100482a781
+    domain: switch
+  - type: turn_off
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: bae25852069235995ea12e25e861898c
+    domain: switch
+  mode: single
+- id: '1769202534089'
+  alias: banyo isigini ac insan algilandiginda
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.banyo_insan_sensoru_occupancy
+    to:
+    - 'on'
+  - trigger: state
+    entity_id:
+    - sensor.banyo_insan_sensoru_debug_distance
+    to:
+  - trigger: state
+    entity_id:
+    - number.banyo_insan_sensoru_entry_distance
+    to:
+  - trigger: state
+    entity_id:
+    - sensor.banyo_insan_sensoru_target_distance
+    to:
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.banyo_insan_sensoru_illuminance
+    enabled: true
+    below: 3
+  - condition: not
+    conditions:
+    - condition: time
+      after: 02:00:00
+      before: 07:00:00
+      weekday:
+      - sun
+      - mon
+      - tue
+      - wed
+      - thu
+      - fri
+      - sat
+  actions:
+  - type: turn_on
+    device_id: 76685cab46f2cb09ed2cc5dd14c095d8
+    entity_id: c8cd994bf09b684aa025fa6126c2117b
+    domain: light
+  mode: single
+- id: '1769202612265'
+  alias: banyonun isigini kimse yoksa kapat
+  description: ''
+  triggers:
+  - type: not_occupied
+    device_id: 02edba65295292b3bcd13a7ef167ba78
+    entity_id: 830f16f3a05173b0110a9a59061630f3
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 76685cab46f2cb09ed2cc5dd14c095d8
+    entity_id: c8cd994bf09b684aa025fa6126c2117b
+    domain: light
+  mode: single
+- id: '1769282293958'
+  alias: yatak odası ışığı 45 dakika açık kaldığında sesli uyar ve kapat
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 8a0b90ccbef377e5ac434094cf7ec9f5
+    entity_id: d575500fd5a107a7893957f4039b25d3
+    domain: switch
+    trigger: device
+    for:
+      hours: 0
+      minutes: 45
+      seconds: 0
+  conditions: []
+  actions:
+  - action: notify.mobile_app_sm_s901e
+    metadata: {}
+    data:
+      message: Yatak odasının ışığı 45 dakikadır açık
+      title: Işık Açık Kaldı
+  - action: input_boolean.turn_on
+    metadata: {}
+    target:
+      entity_id: input_boolean.yatak_odasinin_isigi_acik_kaldi
+    data: {}
+  - delay:
+      hours: 0
+      minutes: 15
+      seconds: 0
+      milliseconds: 0
+  - type: turn_off
+    device_id: 8a0b90ccbef377e5ac434094cf7ec9f5
+    entity_id: d575500fd5a107a7893957f4039b25d3
+    domain: switch
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id: input_boolean.yatak_odasinin_isigi_acik_kaldi
+    data: {}
+  - action: notify.mobile_app_sm_s901e
+    metadata: {}
+    data:
+      message: 'Yatak odasının ışığı 1 saat sonunda kapatıldı '
+      title: Işık Açık Kaldı
+  mode: single
+- id: '1769284045459'
+  alias: melisin odasının ışığı 45 dakika açık kaldığında sesli uyar ve kapat
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 11df2859e25f65c9715977024bbf6f12
+    entity_id: ff36bda015cf7ea2eaaaa4ac99f3a9ec
+    domain: light
+    trigger: device
+  conditions: []
+  actions:
+  - action: notify.mobile_app_sm_s901e
+    metadata: {}
+    data:
+      message: Melisin odasının ışığı 45 dakikadır açık
+      title: Işık Açık Kaldı
+  - action: input_boolean.turn_on
+    metadata: {}
+    target:
+      entity_id: input_boolean.melisin_odasinin_isigi_acik_kaldi
+    data: {}
+  - delay:
+      hours: 0
+      minutes: 15
+      seconds: 0
+      milliseconds: 0
+  - type: turn_off
+    device_id: 11df2859e25f65c9715977024bbf6f12
+    entity_id: ff36bda015cf7ea2eaaaa4ac99f3a9ec
+    domain: light
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id: input_boolean.melisin_odasinin_isigi_acik_kaldi
+    data: {}
+  - action: notify.mobile_app_sm_s901e
+    metadata: {}
+    data:
+      message: 'Melisin odasının ışığı 1 saat sonunda kapatıldı '
+      title: Işık Açık Kaldı
+  mode: single
+- id: '1769284164255'
+  alias: oturma odası ışığı 45 dakika açık kaldığında sesli uyar ve kapat
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 24b84f43c6e111acd0c57eccfb46ed1e
+    entity_id: 71fbf03b739e3a96aa03aa871b723d65
+    domain: switch
+    trigger: device
+    for:
+      hours: 0
+      minutes: 45
+      seconds: 0
+  conditions: []
+  actions:
+  - action: notify.mobile_app_sm_s901e
+    metadata: {}
+    data:
+      message: Oturma odasının ışığı 45 dakikadır açık
+      title: Işık Açık Kaldı
+  - action: input_boolean.turn_on
+    metadata: {}
+    target:
+      entity_id: input_boolean.oturma_odasinin_isigi_acik_kaldi
+    data: {}
+  - delay:
+      hours: 0
+      minutes: 15
+      seconds: 0
+      milliseconds: 0
+  - type: turn_off
+    device_id: 24b84f43c6e111acd0c57eccfb46ed1e
+    entity_id: 71fbf03b739e3a96aa03aa871b723d65
+    domain: switch
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id: input_boolean.oturma_odasinin_isigi_acik_kaldi
+    data: {}
+  - action: notify.mobile_app_sm_s901e
+    metadata: {}
+    data:
+      message: Oturma odasının ışığı 1 saat sonunda kapatıldı
+      title: Işık Açık Kaldı
+  mode: single
+- id: '1769287706999'
+  alias: eve hoşgeldin
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - scene.start_using_automation_family_go_home
+  conditions: []
+  actions:
+  - action: notify.google_assistant_sdk
+    metadata: {}
+    data:
+      message: hello
+  mode: single
+- id: '1769292902023'
+  alias: Keskin ailesi üyesi evine hoşgeldin
+  description: ''
+  triggers:
+  - type: opened
+    device_id: 47c98e7016c94d726bf6d6cab9f0b641
+    entity_id: 2d77551834e17b7db96033c096601cae
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - type: is_not_occupied
+    condition: device
+    device_id: 02edba65295292b3bcd13a7ef167ba78
+    entity_id: 830f16f3a05173b0110a9a59061630f3
+    domain: binary_sensor
+    enabled: true
+  - type: is_not_occupied
+    condition: device
+    device_id: 8ad77f951bd0382ea565c44d8d54daf3
+    entity_id: 354ce086c80bc1c2ec1aaeab66389579
+    domain: binary_sensor
+  - type: is_not_occupied
+    condition: device
+    device_id: 0f8a4c151c90f4fdaa115521e5ff1ee7
+    entity_id: 39ce6b5d11fc145529773ad7b77c954e
+    domain: binary_sensor
+    enabled: true
+  - type: is_not_occupied
+    condition: device
+    device_id: ce144e0f763afe34782b794a807ee68f
+    entity_id: 3431ff3e1d2c5040395ef4b16139f1f8
+    domain: binary_sensor
+    enabled: true
+  actions:
+  - action: input_boolean.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: input_boolean.eve_hosgeldin_rutin_tetikleyici
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 8
+      milliseconds: 0
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id: input_boolean.eve_hosgeldin_rutin_tetikleyici
+    data: {}
+  mode: single
+- id: '1769900000001'
+  alias: Su Arıtma - Güvenlik Protokolü
+  description: 'v9 — MC-38 manyetik sensör ile tam güvenilir çeşme algılama.
+
+    Çeşme AÇIK/KAPALI durumu %100 güvenilir olduğu için tüm koruma mekanizmaları artık
+    düzgün çalışır:
+
+    - Çeşme AÇIK + Vana AÇIK → 27dk musluk koruması (damacana taşma önleme) - Çeşme
+    KAPALI + Vana AÇIK → 30dk tank dolum sayacı - Sızıntı → acil kapatma - Manuel
+    vana kapama → sayaçlar iptal
+
+    Sayaç sıfırlama (mode: restart): - Çeşme açıldığında → 30dk iptal, 27dk başlar
+    - Çeşme kapandığında → 27dk iptal, 30dk başlar - Çeşme tekrar açıldığında → 30dk
+    iptal, 27dk sıfırdan
+
+    '
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.mutfak_su_akisi
+    to: 'on'
+  - trigger: state
+    entity_id: binary_sensor.mutfak_su_akisi
+    to: 'off'
+  - trigger: state
+    entity_id: switch.mutfak_su_vanasi
+    to: 'on'
+  - trigger: state
+    entity_id: switch.mutfak_su_vanasi
+    to: 'off'
+  - trigger: state
+    entity_id: binary_sensor.mutfak_su_sizinti_sensoru_water_leak
+    to: 'on'
+  actions:
+  - delay: 00:00:01
+  - action: timer.cancel
+    target:
+      entity_id: timer.su_musluk_koruma
+  - action: timer.cancel
+    target:
+      entity_id: timer.su_tank_dolum
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: switch.mutfak_su_vanasi
+        state: 'off'
+      sequence:
+      - stop: Vana kapatıldı — tüm sayaçlar iptal.
+    - conditions:
+      - condition: state
+        entity_id: binary_sensor.mutfak_su_sizinti_sensoru_water_leak
+        state: 'on'
+      sequence:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.mutfak_su_vanasi
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.mutfakta_su_sizintisi_var
+      - action: notify.mobile_app_sm_s901e
+        data:
+          message: "\U0001F6A8 ACİL: Mutfakta sızıntı! Vana kapatıldı."
+          title: SU SIZINTISI!
+          data:
+            priority: high
+            ttl: 0
+            channel: alarm_stream
+      - stop: Sızıntı — sistem kilitlendi.
+    - conditions:
+      - condition: state
+        entity_id: switch.mutfak_su_vanasi
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.mutfak_su_akisi
+        state: 'on'
+      sequence:
+      - action: timer.start
+        target:
+          entity_id: timer.su_musluk_koruma
+        data:
+          duration: 00:27:00
+      - wait_for_trigger:
+        - trigger: state
+          entity_id: binary_sensor.mutfak_su_akisi
+          to: 'off'
+        timeout: 00:27:00
+        continue_on_timeout: true
+      - if:
+        - condition: state
+          entity_id: binary_sensor.mutfak_su_akisi
+          state: 'on'
+        then:
+        - action: timer.cancel
+          target:
+            entity_id: timer.su_musluk_koruma
+        - action: switch.turn_off
+          target:
+            entity_id: switch.mutfak_su_vanasi
+        - action: input_boolean.turn_on
+          target:
+            entity_id: input_boolean.su_aritma_guvenlik_kilidi
+        - action: notify.mobile_app_sm_s901e
+          data:
+            message: '⚠️ Musluk 20 dakikadır açık unutuldu. Vana kapatıldı. Çeşmeyi
+              kapatınca kilit otomatik açılır.
+
+              '
+            title: Su Güvenliği — Musluk Koruması
+    - conditions:
+      - condition: state
+        entity_id: switch.mutfak_su_vanasi
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.mutfak_su_akisi
+        state: 'off'
+      sequence:
+      - action: timer.start
+        target:
+          entity_id: timer.su_tank_dolum
+        data:
+          duration: 00:30:00
+      - delay: 00:30:00
+      - action: timer.cancel
+        target:
+          entity_id: timer.su_tank_dolum
+      - if:
+        - condition: state
+          entity_id: switch.mutfak_su_vanasi
+          state: 'on'
+        then:
+        - action: switch.turn_off
+          target:
+            entity_id: switch.mutfak_su_vanasi
+        - action: notify.mobile_app_sm_s901e
+          data:
+            message: "\U0001F6D1 Tank dolum süresi (150dk) tamamlandı. Vana kapatıldı."
+            title: Su Güvenliği — Tank Dolumu
+  mode: restart
+- id: '1770159734450'
+  alias: Diafon Bildirim Kapı Aç
+  description: Bildirimden Kapıyı Aç butonuna basınca çalışır
+  triggers:
+  - event_type: mobile_app_notification_action
+    event_data:
+      action: KAPI_AC
+    trigger: event
+  conditions: []
+  actions:
+  - data:
+      topic: ev/diafon/komut
+      payload: KAPI_AC
+    action: mqtt.publish
+  - data:
+      title: ✅ Kapı Açıldı
+      message: Kapı açma komutu gönderildi
+      data:
+        tag: diafon_kapi
+        ttl: 0
+        priority: high
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1770292562407'
+  alias: Diafon Zil Bildirimi - LiveKit
+  description: Kapı zili çaldığında telefona LiveKit linki ile bildirim gönderir
+  triggers:
+  - entity_id: binary_sensor.diafon_zil
+    to: 'on'
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      title: "\U0001F514 Kapı Zili"
+      message: Kapıda biri var! Tıklayarak konuşun.
+      data:
+        tag: diafon_zil
+        channel: doorbell
+        importance: high
+        ttl: 0
+        priority: high
+        url: https://intercom.hexler.pp.ua/intercom?auto=1
+        clickAction: https://intercom.hexler.pp.ua/intercom?auto=1
+        actions:
+        - action: URI
+          title: "\U0001F3A4 Konuş"
+          uri: https://intercom.hexler.pp.ua/intercom?auto=1
+        - action: KAPI_AC
+          title: "\U0001F513 Kapıyı Aç"
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1770292602935'
+  alias: Diafon Bildirim Kapı Aç
+  description: Bildirimden Kapıyı Aç butonuna basınca çalışır
+  triggers:
+  - event_type: mobile_app_notification_action
+    event_data:
+      action: KAPI_AC
+    trigger: event
+  conditions: []
+  actions:
+  - data:
+      topic: ev/diafon/komut
+      payload: KAPI_AC
+    action: mqtt.publish
+  - data:
+      title: ✅ Kapı Açıldı
+      message: Kapı açma komutu gönderildi
+      data:
+        tag: diafon_kapi
+        ttl: 0
+        priority: high
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1770292628923'
+  alias: Diafon Zil Bitti Bildirimi Temizle
+  description: Zil durduğunda bildirim tag'ini temizler
+  triggers:
+  - entity_id: binary_sensor.diafon_zil
+    to: 'off'
+    for:
+      seconds: 30
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      message: clear_notification
+      data:
+        tag: diafon_zil
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1770292663055'
+  alias: Diafon Kritik Zil Bildirimi
+  description: iOS için kritik bildirim (sesli modda olmasa da çalar)
+  triggers:
+  - entity_id: binary_sensor.diafon_zil
+    to: 'on'
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      title: "\U0001F514 Kapı Zili"
+      message: Kapıda biri var!
+      data:
+        push:
+          sound:
+            name: default
+            critical: 1
+            volume: 1
+        url: https://intercom.hexler.pp.ua/intercom?auto=1
+    action: notify.mobile_app_iphone
+  mode: single
+- id: '1770294985222'
+  alias: Alarm Kuruldu Bildirimi
+  description: Gemini ile alarm kurulduğunda bildirim gönder
+  triggers:
+  - topic: ev/alarm/komut
+    trigger: mqtt
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.payload_json.action == ''ARM'' }}'
+  actions:
+  - action: notify.mobile_app_sinem_iphoneu
+    data: {}
+  mode: single
+- id: '1770295015904'
+  alias: Alarm İptal Bildirimi
+  description: Gemini ile alarm iptal edildiğinde bildirim gönder
+  triggers:
+  - topic: ev/alarm/komut
+    trigger: mqtt
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.payload_json.action == ''DISARM'' }}'
+  actions:
+  - action: notify.mobile_app_sinem_iphoneu
+    data: {}
+  mode: single
+- id: '1770295033192'
+  alias: Kapı Sensörü Gemini Tetikle
+  description: Kapı açıldığında Gemini agent'ı tetikle
+  triggers:
+  - entity_id: binary_sensor.kapi_sensoru
+    to: 'on'
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      topic: ev/kapi_sensoru
+      payload: 'ON'
+    action: mqtt.publish
+  - delay:
+      seconds: 30
+  - data:
+      topic: ev/kapi_sensoru
+      payload: 'OFF'
+    action: mqtt.publish
+  mode: single
+- id: '1770295235504'
+  alias: Yetkisiz Giriş Uyarısı
+  description: Alarm aktifken kapı açılırsa uyar
+  triggers:
+  - entity_id: binary_sensor.kapi_sensoru
+    to: 'on'
+    trigger: state
+  conditions:
+  - condition: state
+    entity_id: sensor.alarm_durumu
+    state: ARMED
+  actions:
+  - data:
+      title: "\U0001F6A8 ALARM!"
+      message: Kapı açıldı ama alarm aktif!
+      data:
+        channel: alarm
+        importance: max
+        ttl: 0
+        priority: high
+        push:
+          sound:
+            name: default
+            critical: 1
+            volume: 1
+    action: notify.mobile_app_telefon
+  mode: single
+- id: '1770739281702'
+  alias: 'Girişi ışığını aç birisi varsa '
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.giris_insan_sensoru_occupancy
+    to:
+    - 'on'
+  - trigger: state
+    entity_id:
+    - sensor.giris_insan_sensoru_debug_distance
+    to:
+  - trigger: state
+    entity_id:
+    - number.giris_insan_sensoru_entry_distance
+    to:
+  - trigger: state
+    entity_id:
+    - sensor.giris_insan_sensoru_target_distance
+    to:
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.giris_insan_sensoru_illuminance
+    enabled: true
+    below: 6
+  - condition: time
+    after: '10:00:00'
+    before: '23:00:00'
+    weekday:
+    - sun
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+  actions:
+  - type: turn_on
+    device_id: c243f4e0b997466cbf16302ae6d01cfc
+    entity_id: 8331aa37db96ea7511a384da7b049328
+    domain: light
+  mode: single
+- id: '1772483792967'
+  alias: Girişte kimse yoksa ayna ışığıni kapat
+  description: ''
+  triggers:
+  - type: not_occupied
+    device_id: 8ad77f951bd0382ea565c44d8d54daf3
+    entity_id: 354ce086c80bc1c2ec1aaeab66389579
+    domain: binary_sensor
+    trigger: device
+  - type: value
+    device_id: 8ad77f951bd0382ea565c44d8d54daf3
+    entity_id: c5cdcbd77efe9eae4f427ffbf3eeb296
+    domain: sensor
+    trigger: device
+    above: 0
+    below: 0
+    enabled: false
+  - trigger: state
+    entity_id:
+    - binary_sensor.giris_insan_sensoru_occupancy
+    to:
+    - 'off'
+  - type: value
+    device_id: 8ad77f951bd0382ea565c44d8d54daf3
+    entity_id: c5cdcbd77efe9eae4f427ffbf3eeb296
+    domain: sensor
+    trigger: device
+    below: 0
+  - trigger: numeric_state
+    entity_id:
+    - sensor.giris_insan_sensoru_target_distance
+    below: 0
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 790fe2fa52b2d549454711c038ff12b3
+    entity_id: da3a81b5194d86bd6a9fb39fcf48b1a4
+    domain: light
+  - action: light.turn_off
+    metadata: {}
+    target:
+      entity_id: light.giris_ayna_isigi
+    data: {}
+  mode: single
+- id: '1772555597810'
+  alias: 'Girişte birisi varsa ayna ışığını aç '
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.giris_insan_sensoru_occupancy
+    to:
+    - 'on'
+  - trigger: state
+    entity_id:
+    - sensor.giris_insan_sensoru_debug_distance
+    to:
+  - trigger: state
+    entity_id:
+    - number.giris_insan_sensoru_entry_distance
+    to:
+  - trigger: state
+    entity_id:
+    - sensor.giris_insan_sensoru_target_distance
+    to:
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.giris_insan_sensoru_illuminance
+    enabled: true
+    below: 6
+  - condition: time
+    after: '10:00:00'
+    before: '23:00:00'
+    weekday:
+    - sun
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+  actions:
+  - type: turn_on
+    device_id: 790fe2fa52b2d549454711c038ff12b3
+    entity_id: da3a81b5194d86bd6a9fb39fcf48b1a4
+    domain: light
+  mode: single
+- id: '1772556209939'
+  alias: Aynanin uzağındayken ışığı arttır 3.25-8
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.giris_insan_sensoru_target_distance
+    above: 3.25
+    below: 8
+  conditions:
+  - condition: device
+    type: is_on
+    device_id: 790fe2fa52b2d549454711c038ff12b3
+    entity_id: da3a81b5194d86bd6a9fb39fcf48b1a4
+    domain: light
+  actions:
+  - device_id: 790fe2fa52b2d549454711c038ff12b3
+    domain: number
+    entity_id: 479d3a2ea864c44f5a145035a144efe9
+    type: set_value
+    value: 1000
+  mode: single
+- id: '1772562186322'
+  alias: Aynanın uzağındayken ışığı arttır 0 - 2.5
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.giris_insan_sensoru_target_distance
+    above: 0
+    below: 2.5
+  conditions:
+  - condition: device
+    type: is_on
+    device_id: 790fe2fa52b2d549454711c038ff12b3
+    entity_id: da3a81b5194d86bd6a9fb39fcf48b1a4
+    domain: light
+  actions:
+  - device_id: 790fe2fa52b2d549454711c038ff12b3
+    domain: number
+    entity_id: 479d3a2ea864c44f5a145035a144efe9
+    type: set_value
+    value: 1000
+  mode: single
+- id: '1772562352446'
+  alias: Aynanın yakınındayken ışığını kis 2.5 - 3.25
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.giris_insan_sensoru_target_distance
+    above: 2.5
+    below: 3.25
+  conditions:
+  - condition: device
+    type: is_on
+    device_id: 790fe2fa52b2d549454711c038ff12b3
+    entity_id: da3a81b5194d86bd6a9fb39fcf48b1a4
+    domain: light
+  actions:
+  - device_id: 790fe2fa52b2d549454711c038ff12b3
+    domain: number
+    entity_id: 479d3a2ea864c44f5a145035a144efe9
+    type: set_value
+    value: 300
+  mode: single
+- id: '1774792787834'
+  alias: Su Arıtma - Çeşme Açıldı (Otomatik Vana)
+  description: 'MC-38 manyetik sensör çeşme kolunun açıldığını algılar ve solenoid
+    vanayı otomatik açar. Güvenlik kilidi veya sızıntı varsa açmaz.
+
+    '
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.mutfak_su_akisi
+    to: 'on'
+  conditions:
+  - condition: state
+    entity_id: switch.mutfak_su_vanasi
+    state: 'off'
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id: binary_sensor.mutfak_su_sizinti_sensoru_water_leak
+      state: 'on'
+  - condition: state
+    entity_id: input_boolean.mutfakta_su_sizintisi_var
+    state: 'off'
+  - condition: state
+    entity_id: input_boolean.su_aritma_guvenlik_kilidi
+    state: 'off'
+  actions:
+  - action: switch.turn_on
+    target:
+      entity_id: switch.mutfak_su_vanasi
+  mode: single
+- id: '1774792847995'
+  alias: Su Arıtma - Güvenlik Kilidi Sıfırlama
+  description: '20dk musluk koruması vanayı kapattıktan sonra güvenlik kilidi aktifleşir.
+    Kullanıcı çeşmeyi kapattığında (MC-38 sensör KAPALI algıladığında) 5 saniye sonra
+    kilit otomatik sıfırlanır. Böylece bir sonraki çeşme açılışında vana normal şekilde
+    açılır.
+
+    '
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.mutfak_su_akisi
+    to: 'off'
+    for: 00:00:05
+  conditions:
+  - condition: state
+    entity_id: input_boolean.su_aritma_guvenlik_kilidi
+    state: 'on'
+  actions:
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.su_aritma_guvenlik_kilidi
+  - action: notify.mobile_app_sm_s901e
+    data:
+      message: ✅ Çeşme kapatıldı. Güvenlik kilidi sıfırlandı. Sistem normal modda.
+      title: Su Arıtma
+  mode: single
+- id: '1774814063904'
+  alias: Test giriş ayna kapatma
+  description: ''
+  triggers:
+  - type: not_occupied
+    device_id: 8ad77f951bd0382ea565c44d8d54daf3
+    entity_id: 354ce086c80bc1c2ec1aaeab66389579
+    domain: binary_sensor
+    trigger: device
+  - type: value
+    device_id: 8ad77f951bd0382ea565c44d8d54daf3
+    entity_id: c5cdcbd77efe9eae4f427ffbf3eeb296
+    domain: sensor
+    trigger: device
+    below: 0
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 790fe2fa52b2d549454711c038ff12b3
+    entity_id: da3a81b5194d86bd6a9fb39fcf48b1a4
+    domain: light
+  mode: single
+- id: '1774885959138'
+  alias: Girişte birisi varsa ayna ışığını aç yeni
+  description: ''
+  triggers:
+  - type: occupied
+    device_id: 8ad77f951bd0382ea565c44d8d54daf3
+    entity_id: 354ce086c80bc1c2ec1aaeab66389579
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.giris_insan_sensoru_illuminance
+    enabled: true
+    below: 6
+  - condition: time
+    after: '10:00:00'
+    before: '23:00:00'
+    weekday:
+    - sun
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+  actions:
+  - type: turn_on
+    device_id: 790fe2fa52b2d549454711c038ff12b3
+    entity_id: da3a81b5194d86bd6a9fb39fcf48b1a4
+    domain: light
+  mode: single
+- id: '1774896747690'
+  alias: Banyo ışığını aç insan algıladığında yeni
+  description: ''
+  triggers:
+  - type: occupied
+    device_id: 02edba65295292b3bcd13a7ef167ba78
+    entity_id: 830f16f3a05173b0110a9a59061630f3
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.banyo_insan_sensoru_illuminance
+    enabled: true
+    below: 3
+  - condition: not
+    conditions:
+    - condition: time
+      after: 02:00:00
+      before: 07:00:00
+      weekday:
+      - sun
+      - mon
+      - tue
+      - wed
+      - thu
+      - fri
+      - sat
+  actions:
+  - type: turn_on
+    device_id: 76685cab46f2cb09ed2cc5dd14c095d8
+    entity_id: c8cd994bf09b684aa025fa6126c2117b
+    domain: light
+  mode: single
+- id: '1774897170791'
+  alias: 'Mutfak ışığını aç insan algıladığında yeni '
+  description: ''
+  triggers:
+  - type: occupied
+    device_id: 0f8a4c151c90f4fdaa115521e5ff1ee7
+    entity_id: 39ce6b5d11fc145529773ad7b77c954e
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.mutfak_insan_sensoru_illuminance
+    enabled: true
+    below: 3
+  actions:
+  - type: turn_on
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: 5ad51a9f3f44eb80bda385eb094b03a9
+    domain: switch
+  mode: single
+- id: '1774897212139'
+  alias: 'Mutfakta kimse yoksa kapat yeni '
+  description: ''
+  triggers:
+  - type: not_occupied
+    device_id: 0f8a4c151c90f4fdaa115521e5ff1ee7
+    entity_id: 39ce6b5d11fc145529773ad7b77c954e
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: 5ad51a9f3f44eb80bda385eb094b03a9
+    domain: switch
+  - type: turn_off
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: b3c881bef16d030fc6a6a3100482a781
+    domain: switch
+  - type: turn_off
+    device_id: 31a25eeae114d69a750abcb0a0443dcf
+    entity_id: bae25852069235995ea12e25e861898c
+    domain: switch
+  mode: single
+- id: '1774897811185'
+  alias: 'Salon imsan sensörü ışık aç yeni '
+  description: ''
+  triggers:
+  - type: occupied
+    device_id: ce144e0f763afe34782b794a807ee68f
+    entity_id: 3431ff3e1d2c5040395ef4b16139f1f8
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.salon_insan_sensoru_illuminance
+    enabled: true
+    below: 3
+  - condition: time
+    after: '10:00:00'
+    before: '23:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    - sun
+  actions:
+  - type: turn_on
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: 38f1127c97591d411fa8cf6179cac397
+    domain: switch
+  mode: single
+- id: '1774897863689'
+  alias: 'Salon ledlerini kimse yoksa kapat yeni '
+  description: ''
+  triggers:
+  - type: not_occupied
+    device_id: ce144e0f763afe34782b794a807ee68f
+    entity_id: 3431ff3e1d2c5040395ef4b16139f1f8
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: 38f1127c97591d411fa8cf6179cac397
+    domain: switch
+  - type: turn_off
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: b3dfc9c989d34217fcbc1a3b2361bfbf
+    domain: switch
+  - type: turn_off
+    device_id: 9f473ecd87ad192e732db0076bece775
+    entity_id: 380b13857e2397631e019b7535e8c7e0
+    domain: switch
+  mode: single

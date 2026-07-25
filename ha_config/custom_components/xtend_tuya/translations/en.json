@@ -35,7 +35,7 @@
                     "new_ir_device_name": "New device name"
                 }
             },
-            "configure": {
+            "configure_api": {
                 "description": "Add a Tuya OpenAPI credential to improve the compatibility with some Tuya devices. Please follow the guide at the URL by clicking the button below.",
                 "data": {
                     "no_openapi": "Don't ask for OpenAPI credentials",
@@ -62,7 +62,16 @@
     },
     "options": {
         "step": {
-            "configure": {
+            "init": {
+                "title": "Xtend Tuya Settings",
+                "description": "Select the settings you want to configure.",
+                "menu_options": {
+                    "configure_api": "API Credentials",
+                    "device_settings": "Device Settings"
+                }
+            },
+            "configure_api": {
+                "title": "Add Tuya OpenAPI credentials",
                 "description": "Add a Tuya OpenAPI credential to improve the compatibility with some Tuya devices. Please follow the guide at the URL by clicking the button below.",
                 "data": {
                     "no_openapi": "Don't ask for OpenAPI credentials",
@@ -71,9 +80,96 @@
                     "access_secret": "Tuya IoT Access Secret",
                     "username": "SmartLife/Tuya account",
                     "password": "SmartLife/Tuya account password"
-                },
-                "title": "Add Tuya OpenAPI credentials"
+                }
+            },
+            "device_settings": {
+                "title": "Configuration category",
+                "menu_options": {
+                    "select_climate_device": "Climate options",
+                    "select_cover_device": "Cover options",
+                    "select_lock_device": "Lock options"
+                }
+            },
+            "select_device": {
+                "title": "Select device",
+                "description": "Select a device to configure.",
+                "data": {
+                    "device": "Device"
+                }
+            },
+            "configure": {
+                "title": "Add Tuya OpenAPI credentials",
+                "description": "Add a Tuya OpenAPI credential to improve the compatibility with some Tuya devices. Please follow the guide at the URL by clicking the button below.",
+                "data": {
+                    "no_openapi": "Don't ask for OpenAPI credentials",
+                    "country_code": "Country",
+                    "access_id": "Tuya IoT Access ID",
+                    "access_secret": "Tuya IoT Access Secret",
+                    "username": "SmartLife/Tuya account",
+                    "password": "SmartLife/Tuya account password"
+                }
+            },
+            "select_climate_device": {
+                "title": "Select Device",
+                "description": "Select a climate device to configure.",
+                "data": {
+                    "device": "Device"
+                }
+            },
+            "select_cover_device": {
+                "title": "Select Device",
+                "description": "Select a cover device to configure.",
+                "data": {
+                    "device": "Device"
+                }
+            },
+            "select_lock_device": {
+                "title": "Select Device",
+                "description": "Select a lock device to configure.",
+                "data": {
+                    "device": "Device"
+                }
+            },
+            "climate_device_settings": {
+                "title": "Configure {device_name}",
+                "description": "Set the properties of the device",
+                "data": {
+                    "current_temperature_value_multiplicator": "Current temperature multiplier",
+                    "current_humidity_value_multiplicator": "Current humidity multiplier",
+                    "target_temperature_value_multiplicator": "Target temperature multiplier",
+                    "target_humidity_value_multiplicator": "Target humidity multiplier"
+                }
+            },
+            "cover_device_settings": {
+                "title": "Configure {device_name}",
+                "description": "Set the properties of the device",
+                "data": {
+                    "invert_control": "Invert the control of the device",
+                    "invert_status": "Invert the reported status of the device",
+                    "open_time": "Time from opened to closed (seconds)",
+                    "update_interval": "Status refresh interval",
+                    "force_virtual_position": "Force use of virtual position",
+                    "no_precise_position": "Device doesn't support precise positioning"
+                }
+            },
+            "lock_device_settings": {
+                "title": "Configure {device_name}",
+                "description": "Set the properties of the device",
+                "data": {
+                    "temporary_unlock_time": "Seconds the lock stays opened",
+                    "lock_unlock_mecanism": "Force unlock mecanism",
+                    "lock_status_dpcode": "DPCode that represents the lock open/closed status"
+                }
             }
+        },
+        "abort": {
+            "climate_entity_not_found": "No climate entity found for the selected device. Please select a device with a climate entity to configure.",
+            "lock_entity_not_found": "No lock entity found for the selected device. Please select a device with a lock entity to configure.",
+            "no_devices_found": "No devices found for this configuration category.",
+            "device_not_selected": "No device selected. Please select a device to configure.",
+            "device_not_found": "Selected device not found. Please select a valid device to configure.",
+            "no_configurable_properties": "The selected device does not have configurable properties.",
+            "no_multi_manager": "No Multi Manager stored, please contact the developer."
         }
     },
     "services": {
@@ -259,16 +355,18 @@
             "trash_status": {
                 "name": "Garbage is full"
             },
+            "in_clean": {
+                "name": "Auto-clean completed"
+            },
+            "dp_time_clear_flag": {
+                "name": "Scheduled clean triggered"
+            },
             "wakeup": {
                 "name": "Woken up"
             },
             "xt_generic_binary_sensor": {
                 "name": "{name}"
             },
-
-
-
-
             "carbon_dioxide": {
                 "name": "Carbon dioxide"
             },
@@ -322,6 +420,9 @@
             "clear_energy": {
                 "name": "Clear energy"
             },
+            "deep_clean": {
+                "name": "Deep clean"
+            },
             "empty_litter": {
                 "name": "Empty litter box"
             },
@@ -337,10 +438,16 @@
             "manual_clean": {
                 "name": "Manual clean"
             },
+            "one_click_cleanup": {
+                "name": "One-click cleanup"
+            },
             "manual_lock": {
                 "name": "Manual lock"
             },
-            "reset_add_ele": {
+            "xt_import_electrical_history": {
+                "name": "Import consumption history"
+            },
+            "xt_reset_add_ele": {
                 "name": "Reset consumption"
             },
             "xt_add_ir_device": {
@@ -352,10 +459,6 @@
             "xt_generic_button": {
                 "name": "{name}"
             },
-
-
-
-
             "reset_duster_cloth": {
                 "name": "Reset duster cloth"
             },
@@ -408,11 +511,6 @@
             "door_3": {
                 "name": "Door 3"
             },
-
-
-
-
-
             "blind": {
                 "name": "Blind"
             },
@@ -427,10 +525,40 @@
             }
         },
         "event": {
-
-
-
-
+            "alarm_lock": {
+                "name": "Lock alarm",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "wrong_finger": "Wrong fingerprint",
+                            "wrong_password": "Wrong password",
+                            "wrong_card": "Wrong card",
+                            "wrong_face": "Wrong face",
+                            "tongue_bad": "Latch stuck",
+                            "too_hot": "Too hot",
+                            "unclosed_time": "Not closed after timeout",
+                            "tongue_not_out": "Deadbolt stuck",
+                            "pry": "Anti-pry alarm",
+                            "key_in": "Not calibrated",
+                            "low_battery": "Low battery",
+                            "power_off": "Battery exhausted",
+                            "shock": "Vibration alarm",
+                            "defense": "Arm alarm",
+                            "test": "Test"
+                        }
+                    }
+                }
+            },
+            "ipc_movement_detect": {
+                "name": "Movement detected",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "motion": "Motion detected"
+                        }
+                    }
+                }
+            },
             "numbered_button": {
                 "name": "Button {button_number}",
                 "state_attributes": {
@@ -442,6 +570,12 @@
                         }
                     }
                 }
+            },
+            "unlock_user": {
+                "name": "Unlock user ({user_type})"
+            },
+            "xt_device_event_notify": {
+                "name": "Device notifications"
             }
         },
         "light": {
@@ -454,10 +588,6 @@
             "xt_generic_light": {
                 "name": "{name}"
             },
-            
-
-
-
             "backlight": {
                 "name": "Backlight"
             },
@@ -504,6 +634,9 @@
             "bright_value": {
                 "name": "Brightness"
             },
+            "capacity_calibration": {
+                "name": "Capacity calibration"
+            },
             "charge_cur_set": {
                 "name": "Charging current"
             },
@@ -548,6 +681,9 @@
             },
             "detection_distance_min": {
                 "name": "Min detection distance"
+            },
+            "detection_sensitivity": {
+                "name": "Detection sensitivity"
             },
             "hold_sensitivity": {
                 "name": "Hold sensitivity"
@@ -675,6 +811,33 @@
             "sm_sensitivity": {
                 "name": "Micro-motion detection sensitivity"
             },
+            "sensitivity_cz": {
+                "name": "Sensitivity CZ"
+            },
+            "sensitivity_wd": {
+                "name": "Sensitivity WD"
+            },
+            "false_alarm": {
+                "name": "False alarm threshold"
+            },
+            "study_timer": {
+                "name": "Study timer"
+            },
+            "wd_detection": {
+                "name": "WD detection distance"
+            },
+            "mov_min_detection": {
+                "name": "Min movement detection distance"
+            },
+            "micro_min_detection": {
+                "name": "Min micro-motion detection distance (ZG-205Z)"
+            },
+            "bre_min_detection": {
+                "name": "Min breathing detection distance"
+            },
+            "sand_surface_calibration": {
+                "name": "Sand surface calibration"
+            },
             "standby_bright": {
                 "name": "Standby brightness"
             },
@@ -692,6 +855,9 @@
             },
             "tempsc": {
                 "name": "Temperature correction"
+            },
+            "time_clear": {
+                "name": "Scheduled clean time"
             },
             "timer_on": {
                 "name": "Delayed power on"
@@ -738,10 +904,6 @@
             "xt_generic_number": {
                 "name": "{name}"
             },
-
-
-
-
             "alarm_delay": {
                 "name": "Alarm delay"
             },
@@ -1164,10 +1326,6 @@
             "xt_generic_select": {
                 "name": "{name}"
             },
-
-
-
-
             "basic_anti_flicker": {
                 "name": "Anti-flicker",
                 "state": {
@@ -1471,6 +1629,15 @@
                     "96h": "96h",
                     "cancel": "Cancel"
                 }
+            },
+            "xt_lock_unlock_mechanism": {
+                "name": "Lock/unlock mechanism",
+                "state": {
+                    "auto": "Automatic",
+                    "door_open": "Door open",
+                    "door_operate": "Door operate",
+                    "dpcode_command": "DPcode command"
+                }
             }
         },
         "sensor": {
@@ -1502,28 +1669,28 @@
                 "name": "Grid voltage"
             },
             "add_ele": {
-                "name": "Consumption"
+                "name": "Consumption {index}"
             },
             "add_ele_this_month": {
-                "name": "Monthly consumption"
+                "name": "Monthly consumption {index}"
             },
             "add_ele_this_year": {
-                "name": "Yearly consumption"
+                "name": "Yearly consumption {index}"
             },
             "add_ele_today": {
-                "name": "Daily consumption"
+                "name": "Daily consumption {index}"
             },
-            "add_ele2": {
-                "name": "Consumption (method B)"
+            "xt_add_ele": {
+                "name": "Consumption {index} (method B)"
             },
-            "add_ele2_this_month": {
-                "name": "Monthly consumption (method B)"
+            "xt_add_ele_this_month": {
+                "name": "Monthly consumption {index} (method B)"
             },
-            "add_ele2_this_year": {
-                "name": "Yearly consumption (method B)"
+            "xt_add_ele_this_year": {
+                "name": "Yearly consumption {index} (method B)"
             },
-            "add_ele2_today": {
-                "name": "Daily consumption (method B)"
+            "xt_add_ele_today": {
+                "name": "Daily consumption {index} (method B)"
             },
             "auto_deordrizer": {
                 "name": "Auto deordrizer"
@@ -1627,6 +1794,9 @@
             },
             "ch9_temperature": {
                 "name": "Channel 9 Temperature"
+            },
+            "bag_change_counting": {
+                "name": "Bag change count"
             },
             "capacity_calibration": {
                 "name": "Capacity calibration"
@@ -1766,6 +1936,9 @@
             "excretion_times_day": {
                 "name": "Number of excretion"
             },
+            "fault": {
+                "name": "Fault"
+            },
             "flow_velocity": {
                 "name": "Flow speed"
             },
@@ -1880,6 +2053,9 @@
             "monitoring": {
                 "name": "Monitoring"
             },
+            "mov_status": {
+                "name": "Movement status"
+            },
             "ms_category_alarm_lock": {
                 "name": "Keypad alarm",
                 "state": {
@@ -1982,6 +2158,9 @@
             },
             "pir_radar": {
                 "name": "PIR Radar"
+            },
+            "ponud": {
+                "name": "Cat weight (lb)"
             },
             "power_a": {
                 "name": "Power A"
@@ -2180,6 +2359,13 @@
             "unit": {
                 "name": "Unit"
             },
+            "unit_switch": {
+                "name": "Weight unit",
+                "state": {
+                    "kg": "Kilograms",
+                    "lb": "Pounds"
+                }
+            },
             "unlock_card": {
                 "name": "Card unlock user"
             },
@@ -2254,10 +2440,6 @@
             "xt_generic_sensor": {
                 "name": "{name}"
             },
-
-
-
-
             "air_pressure": {
                 "name": "Air pressure"
             },
@@ -2321,11 +2503,20 @@
             "current": {
                 "name": "Current"
             },
+            "current2": {
+                "name": "Current 2"
+            },
             "current_temperature": {
                 "name": "Current temperature"
             },
             "depth": {
                 "name": "Depth"
+            },
+            "detection_near": {
+                "name": "Detection near"
+            },
+            "distance": {
+                "name": "Target distance"
             },
             "duster_cloth_life": {
                 "name": "Duster cloth lifetime"
@@ -2452,6 +2643,9 @@
             "power": {
                 "name": "Power"
             },
+            "power2": {
+                "name": "Power 2"
+            },
             "precipitation_intensity": {
                 "name": "Precipitation intensity"
             },
@@ -2520,6 +2714,27 @@
             "total_energy": {
                 "name": "Total energy"
             },
+            "total_energy_today": {
+                "name": "Daily total energy"
+            },
+            "total_energy_this_month": {
+                "name": "Monthly total energy"
+            },
+            "total_energy_this_year": {
+                "name": "Yearly total energy"
+            },
+            "xt_total_energy": {
+                "name": "Total energy (method B)"
+            },
+            "xt_total_energy_today": {
+                "name": "Daily total energy (method B)"
+            },
+            "xt_total_energy_this_month": {
+                "name": "Monthly total energy (method B)"
+            },
+            "xt_total_energy_this_year": {
+                "name": "Yearly total energy (method B)"
+            },
             "total_operating_time": {
                 "name": "Total operating time"
             },
@@ -2550,6 +2765,9 @@
             "voltage": {
                 "name": "Voltage"
             },
+            "voltage2": {
+                "name": "Voltage 2"
+            },
             "water_level": {
                 "name": "Water level"
             },
@@ -2566,6 +2784,15 @@
             },
             "wind_direction": {
                 "name": "Wind direction"
+            },
+            "xt_lock_unlock_mechanism": {
+                "name": "Lock/unlock mechanism",
+                "state": {
+                    "auto": "Automatic",
+                    "door_open": "Door open",
+                    "door_operate": "Door operate",
+                    "dpcode_command": "DPcode command"
+                }
             }
         },
         "switch": {
@@ -2626,11 +2853,17 @@
             "deodorization": {
                 "name": "Deodorization"
             },
+            "developer_mode": {
+                "name": "Developer mode"
+            },
             "empty": {
                 "name": "Empty"
             },
             "factory_reset": {
                 "name": "Factory reset"
+            },
+            "false_breath": {
+                "name": "False breath filter"
             },
             "id_verification_set": {
                 "name": "Set ID verification"
@@ -2797,10 +3030,6 @@
             "xt_generic_switch": {
                 "name": "{name}"
             },
-
-
-
-
             "anion": {
                 "name": "Anion"
             },
@@ -2915,6 +3144,9 @@
             "sleep": {
                 "name": "Sleep"
             },
+            "sleep_new": {
+                "name": "Sleep mode"
+            },
             "sleep_aid": {
                 "name": "Sleep aid"
             },
@@ -3027,69 +3259,35 @@
         },
         "tuya_iot_failed_request": {
             "title": "Tuya OpenAPI request failed",
-            "fix_flow": {
-                "step": {
-                    "confirm": {
-                        "description": "The integration \"{name}\" (`{config_entry_id}`) could not connect to the Tuya OpenAPI service (request failed)\n\nTo fix this error, check that your HA can access the internet and that there is no firewall in between HA and Tuya OpenAPI endpoints.",
-                        "title": "Tuya OpenAPI request failed"
-                    }
-                }
-            }
+            "description": "The integration \"{name}\" (`{config_entry_id}`) could not connect to the Tuya OpenAPI service (request failed)\n\nTo fix this error, check that your HA can access the internet and that there is no firewall in between HA and Tuya OpenAPI endpoints."
         },
         "tuya_iot_failed_login": {
             "title": "Tuya OpenAPI credentials expired",
-            "fix_flow": {
-                "step": {
-                    "confirm": {
-                        "description": "The integration \"{name}\" (`{config_entry_id}`) could not connect to the Tuya OpenAPI service (credentials expired)\n\nTo fix this error please follow the guide at the URL by clicking the button below, then restart Home Assistant.",
-                        "title": "Tuya OpenAPI credentials expired"
-                    }
-                }
-            }
+            "description": "The integration \"{name}\" (`{config_entry_id}`) could not connect to the Tuya OpenAPI service (credentials expired)\n\nTo fix this error please follow the guide at the URL by clicking the button below, then restart Home Assistant."
         },
         "tuya_iot_not_configured": {
             "title": "Tuya OpenAPI account not configured",
-            "fix_flow": {
-                "step": {
-                    "confirm": {
-                        "description": "The integration \"{name}\" (`{config_entry_id}`) Does not have Tuya OpenAPI credentials\n\nWithout this, a lot of entities might be missing in your devices.\n\nTo fix this warning please follow the guide at the URL by clicking the button below, then restart Home Assistant.",
-                        "title": "Tuya OpenAPI account not configured"
-                    }
-                }
-            }
+            "description": "The integration \"{name}\" (`{config_entry_id}`) Does not have Tuya OpenAPI credentials\n\nWithout this, a lot of entities might be missing in your devices.\n\nTo fix this warning please follow the guide at the URL by clicking the button below, then restart Home Assistant."
         },
         "tuya_iot_lock_not_subscribed": {
             "title": "Tuya OpenAPI account badly configured (lock)",
-            "fix_flow": {
-                "step": {
-                    "confirm": {
-                        "description": "The integration \"{name}\" (`{config_entry_id}`) Does not have a Tuya OpenAPI account that is subscribed to the Smart Lock Open Service\n\nWithout this, locks will not function properly.\n\nTo fix this warning please follow the guide at the URL by clicking the button below, then restart Home Assistant.",
-                        "title": "Tuya OpenAPI account badly configured (lock)"
-                    }
-                }
-            }
+            "description": "The integration \"{name}\" (`{config_entry_id}`) Does not have a Tuya OpenAPI account that is subscribed to the Smart Lock Open Service\n\nWithout this, locks will not function properly.\n\nTo fix this warning please follow the guide at the URL by clicking the button below, then restart Home Assistant."
         },
         "tuya_iot_camera_not_subscribed": {
             "title": "Tuya OpenAPI account badly configured (camera)",
-            "fix_flow": {
-                "step": {
-                    "confirm": {
-                        "description": "The integration \"{name}\" (`{config_entry_id}`) Does not have a Tuya OpenAPI account that is subscribed to the IoT Video Live Stream service\n\nWithout this, cameras will not function properly.\n\nTo fix this warning please follow the guide at the URL by clicking the button below, then restart Home Assistant.",
-                        "title": "Tuya OpenAPI account badly configured (camera)"
-                    }
-                }
-            }
+            "description": "The integration \"{name}\" (`{config_entry_id}`) Does not have a Tuya OpenAPI account that is subscribed to the IoT Video Live Stream service\n\nWithout this, cameras will not function properly.\n\nTo fix this warning please follow the guide at the URL by clicking the button below, then restart Home Assistant."
         },
         "tuya_iot_ir_not_subscribed": {
             "title": "Tuya OpenAPI account badly configured (IR)",
-            "fix_flow": {
-                "step": {
-                    "confirm": {
-                        "description": "The integration \"{name}\" (`{config_entry_id}`) Does not have a Tuya OpenAPI account that is subscribed to the IR Control Hub Open Service service\n\nWithout this, IR devices will not function properly.\n\nTo fix this warning please follow the guide at the URL by clicking the button below, then restart Home Assistant.",
-                        "title": "Tuya OpenAPI account badly configured (IR)"
-                    }
-                }
-            }
+            "description": "The integration \"{name}\" (`{config_entry_id}`) Does not have a Tuya OpenAPI account that is subscribed to the IR Control Hub Open Service service\n\nWithout this, IR devices will not function properly.\n\nTo fix this warning please follow the guide at the URL by clicking the button below, then restart Home Assistant."
+        },
+        "tuya_iot_sensor_energy_stat_not_subscribed": {
+            "title": "Tuya OpenAPI account badly configured (Energy stat)",
+            "description": "The integration \"{name}\" (`{config_entry_id}`) Does not have a Tuya OpenAPI account that is subscribed to the Beta API service\n\nWithout this, fetching energy sensor consumption history will not function properly.\n\nTo fix this warning please follow the guide at the URL by clicking the button below, then restart Home Assistant."
+        },
+        "tuya_iot_mqtt_failed_login": {
+            "title": "Tuya OpenAPI MQTT Not authorized",
+            "description": "The integration \"{name}\" (`{config_entry_id}`) could not connect to the Tuya OpenAPI MQTT queue, something is wrong in your configuration\n\nTo fix this error please follow the guide at the URL by clicking the button below, then restart Home Assistant."
         }
     }
 }

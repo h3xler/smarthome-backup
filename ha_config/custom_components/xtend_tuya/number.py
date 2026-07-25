@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 from typing import cast
+from tuya_device_handlers.definition.number import (
+    NumberDefinition,
+    get_default_definition,
+)
 from homeassistant.components.number import (
     NumberDeviceClass,
 )
@@ -11,6 +15,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.number.const import (
     NumberMode,
+    DEVICE_CLASS_UNITS as NUMBER_DEVICE_CLASS_UNITS,
 )
 from .util import (
     restrict_descriptor_category,
@@ -28,7 +33,6 @@ from .multi_manager.multi_manager import (
 from .ha_tuya_integration.tuya_integration_imports import (
     TuyaNumberEntity,
     TuyaNumberEntityDescription,
-    TuyaDPCodeIntegerWrapper,
 )
 from .entity import (
     XTEntity,
@@ -50,13 +54,13 @@ class XTNumberEntityDescription(TuyaNumberEntityDescription):
         device: XTDevice,
         device_manager: MultiManager,
         description: XTNumberEntityDescription,
-        dpcode_wrapper: TuyaDPCodeIntegerWrapper,
+        definition: NumberDefinition,
     ) -> XTNumberEntity:
         return XTNumberEntity(
             device=device,
             device_manager=device_manager,
             description=XTNumberEntityDescription(**description.__dict__),
-            dpcode_wrapper=dpcode_wrapper,
+            definition=definition,
         )
 
 
@@ -375,6 +379,52 @@ NUMBERS: dict[str, tuple[XTNumberEntityDescription, ...]] = {
             translation_key="sm_sensitivity",
             entity_category=EntityCategory.CONFIG,
         ),
+        # ZG-205Z presence sensor specific DPs
+        XTNumberEntityDescription(
+            key=XTDPCode.SENSITIVITY_CZ,
+            translation_key="sensitivity_cz",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        XTNumberEntityDescription(
+            key=XTDPCode.SENSITIVITY_WD,
+            translation_key="sensitivity_wd",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        XTNumberEntityDescription(
+            key=XTDPCode.FALSE_ALARM,
+            translation_key="false_alarm",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        XTNumberEntityDescription(
+            key=XTDPCode.STUDY_TIMER,
+            translation_key="study_timer",
+            device_class=NumberDeviceClass.DURATION,
+            entity_category=EntityCategory.CONFIG,
+        ),
+        XTNumberEntityDescription(
+            key=XTDPCode.WD_DETECTION,
+            translation_key="wd_detection",
+            device_class=NumberDeviceClass.DISTANCE,
+            entity_category=EntityCategory.CONFIG,
+        ),
+        XTNumberEntityDescription(
+            key=XTDPCode.MOV_MIN_DETECTION,
+            translation_key="mov_min_detection",
+            device_class=NumberDeviceClass.DISTANCE,
+            entity_category=EntityCategory.CONFIG,
+        ),
+        XTNumberEntityDescription(
+            key=XTDPCode.MICRO_MIN_DETECTION,
+            translation_key="micro_min_detection",
+            device_class=NumberDeviceClass.DISTANCE,
+            entity_category=EntityCategory.CONFIG,
+        ),
+        XTNumberEntityDescription(
+            key=XTDPCode.BRE_MIN_DETECTION,
+            translation_key="bre_min_detection",
+            device_class=NumberDeviceClass.DISTANCE,
+            entity_category=EntityCategory.CONFIG,
+        ),
     ),
     "jtmspro": (
         XTNumberEntityDescription(
@@ -494,6 +544,29 @@ NUMBERS: dict[str, tuple[XTNumberEntityDescription, ...]] = {
         XTNumberEntityDescription(
             key=XTDPCode.UV_START_TIME,
             translation_key="uv_start_time",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        # Ti+ / DOEL ti+TpCTbt-01 specific DPs
+        XTNumberEntityDescription(
+            key=XTDPCode.CAPACITY_CALIBRATION,
+            translation_key="capacity_calibration",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        XTNumberEntityDescription(
+            key=XTDPCode.DETECTION_SENSITIVITY,
+            translation_key="detection_sensitivity",
+            device_class=NumberDeviceClass.WEIGHT,
+            entity_category=EntityCategory.CONFIG,
+        ),
+        XTNumberEntityDescription(
+            key=XTDPCode.SAND_SURFACE_CALIBRATION,
+            translation_key="sand_surface_calibration",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        XTNumberEntityDescription(
+            key=XTDPCode.TIME_CLEAR,
+            translation_key="time_clear",
+            device_class=NumberDeviceClass.DURATION,
             entity_category=EntityCategory.CONFIG,
         ),
     ),
@@ -659,9 +732,18 @@ async def async_setup_entry(
                 generic_dpcodes = XTEntity.get_generic_dpcodes_for_this_platform(
                     device, this_platform
                 )
+                if not generic_dpcodes:
+                    continue
+                dev_class_from_uom = XTEntity.get_device_classes_from_uom(
+                    NUMBER_DEVICE_CLASS_UNITS
+                )
                 for dpcode in generic_dpcodes:
-                    descriptor = XTNumberEntityDescription(
+                    dpcode_info = device.get_dpcode_information(dpcode=dpcode)
+                    description = XTNumberEntityDescription(
                         key=dpcode,
+                        device_class=XTEntity.get_device_class_from_uom(
+                            dpcode_info, dev_class_from_uom, device
+                        ),
                         translation_key="xt_generic_number",
                         translation_placeholders={
                             "name": XTEntity.get_human_name(dpcode)
@@ -669,12 +751,15 @@ async def async_setup_entry(
                         entity_registry_enabled_default=False,
                         entity_registry_visible_default=False,
                     )
-                    if dpcode_wrapper := TuyaDPCodeIntegerWrapper.find_dpcode(
-                        device, descriptor.key, prefer_function=True
-                    ):
+                    if definition := get_default_definition(
+                                    device, description.key
+                                ):
                         entities.append(
                             XTNumberEntity.get_entity_instance(
-                                descriptor, device, hass_data.manager, dpcode_wrapper
+                                device=device,
+                                device_manager=hass_data.manager,
+                                description=description,
+                                definition=definition,
                             )
                         )
         async_add_entities(entities)
@@ -705,7 +790,10 @@ async def async_setup_entry(
                         )
                     entities.extend(
                         XTNumberEntity.get_entity_instance(
-                            description, device, hass_data.manager, dpcode_wrapper
+                            device=device,
+                            device_manager=hass_data.manager,
+                            description=description,
+                            definition=definition,
                         )
                         for description in category_descriptions
                         if (
@@ -717,15 +805,18 @@ async def async_setup_entry(
                                 externally_managed_dpcodes,
                             )
                             and (
-                                dpcode_wrapper := TuyaDPCodeIntegerWrapper.find_dpcode(
-                                    device, description.key, prefer_function=True
+                                definition := get_default_definition(
+                                    device, description.key
                                 )
                             )
                         )
                     )
                     entities.extend(
                         XTNumberEntity.get_entity_instance(
-                            description, device, hass_data.manager, dpcode_wrapper
+                            device=device,
+                            device_manager=hass_data.manager,
+                            description=description,
+                            definition=definition,
                         )
                         for description in category_descriptions
                         if (
@@ -737,8 +828,8 @@ async def async_setup_entry(
                                 externally_managed_dpcodes,
                             )
                             and (
-                                dpcode_wrapper := TuyaDPCodeIntegerWrapper.find_dpcode(
-                                    device, description.key, prefer_function=True
+                                definition := get_default_definition(
+                                    device, description.key
                                 )
                             )
                         )
@@ -768,17 +859,20 @@ class XTNumberEntity(XTEntity, TuyaNumberEntity):
         device: XTDevice,
         device_manager: MultiManager,
         description: XTNumberEntityDescription,
-        dpcode_wrapper: TuyaDPCodeIntegerWrapper,
+        definition: NumberDefinition,
     ) -> None:
         """Init XT number."""
         super(XTNumberEntity, self).__init__(
-            device, device_manager, description, dpcode_wrapper=dpcode_wrapper
+            device=device,
+            device_manager=device_manager,  # type: ignore
+            description=description,
+            definition=definition,
         )
         super(XTEntity, self).__init__(
-            device,
-            device_manager,  # type: ignore
-            description,
-            dpcode_wrapper,
+            device=device,
+            device_manager=device_manager,  # type: ignore
+            description=description,
+            definition=definition,
         )
         self.device = device
         self.device_manager = device_manager
@@ -789,20 +883,23 @@ class XTNumberEntity(XTEntity, TuyaNumberEntity):
 
     @staticmethod
     def get_entity_instance(
-        description: XTNumberEntityDescription,
         device: XTDevice,
         device_manager: MultiManager,
-        dpcode_wrapper: TuyaDPCodeIntegerWrapper,
+        description: XTNumberEntityDescription,
+        definition: NumberDefinition,
     ) -> XTNumberEntity:
         if hasattr(description, "get_entity_instance") and callable(
             getattr(description, "get_entity_instance")
         ):
             return description.get_entity_instance(
-                device, device_manager, description, dpcode_wrapper
+                device=device,
+                device_manager=device_manager,
+                description=description,
+                definition=definition,
             )
         return XTNumberEntity(
-            device,
-            device_manager,
-            XTNumberEntityDescription(**description.__dict__),
-            dpcode_wrapper,
+            device=device,
+            device_manager=device_manager,
+            description=XTNumberEntityDescription(**description.__dict__),
+            definition=definition,
         )

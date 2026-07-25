@@ -21,10 +21,7 @@ from ....const import (
     XTIRHubInformation,
     XTIRRemoteInformation,
     XTIRRemoteKeysInformation,
-)
-from homeassistant.helpers.issue_registry import (
-    IssueSeverity,
-    async_create_issue,
+    XTLockingMechanism,
 )
 
 
@@ -43,6 +40,12 @@ class XTDeviceManagerAPIInterface(ABC):
 
     def trigger_scene(self, home_id: str, scene_id: str) -> bool:
         return False
+    
+    def get_device_consumption_statistics_by_day(self, device_id: str, start_day: str, end_day: str) -> dict[str, dict[float, float]] | None:
+        return None
+    
+    def get_device_consumption_statistics_by_hour(self, device_id: str, start_day_and_hour: str, end_day_and_hour: str) -> dict[str, dict[float, float]] | None:
+        return None
 
 
 class XTDeviceManagerInfraRedInterface(ABC):
@@ -176,7 +179,7 @@ class XTDeviceManagerDeviceManagementInterface(ABC):
 
     @abstractmethod
     async def update_device_cache(self):
-        pass
+        ...
 
     @abstractmethod
     def get_available_device_maps(self) -> list[XTDeviceMap]:
@@ -220,7 +223,7 @@ class XTDeviceManagerMQTTManagementInterface(ABC):
 
 
 class XTDeviceManagerLockManagementInterface(ABC):
-    def send_lock_unlock_command(self, device: shared.XTDevice, lock: bool) -> bool:
+    def send_lock_unlock_command(self, device: shared.XTDevice, lock: bool, force_unlock_mechanism: XTLockingMechanism = XTLockingMechanism.AUTO) -> bool:
         return False
 
 
@@ -242,32 +245,6 @@ class XTDeviceManagerMultiManagerManagementInterface(ABC):
         multi_manager: mm.MultiManager,
     ) -> None:
         return None
-
-    async def raise_issue(
-        self,
-        hass: HomeAssistant,
-        config_entry: XTConfigEntry,
-        is_fixable: bool,
-        severity: IssueSeverity,
-        translation_key: str,
-        translation_placeholders: dict[str, Any],
-        learn_more_url: str | None = None,
-    ):
-        try:
-            async_create_issue(
-                hass=hass,
-                domain=DOMAIN,
-                issue_domain=DOMAIN,
-                issue_id=f"{config_entry.entry_id}_{translation_key}",
-                is_fixable=is_fixable,
-                severity=severity,
-                translation_key=translation_key,
-                translation_placeholders=translation_placeholders,
-                learn_more_url=learn_more_url,
-            )
-        except Exception as e:
-            # Prevent failure for any reason on this method
-            LOGGER.error(f"Exception raised during raise_issue: {e}")
 
 
 class XTDeviceManagerInterface(

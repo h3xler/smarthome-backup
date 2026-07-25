@@ -58,13 +58,9 @@ class XTEventLoopProtector:
             if is_coroutine:
                 XTEventLoopProtector.hass.async_create_task(callback(*args, **kwargs))
             else:
-                if len(kwargs) > 0:
-                    LOGGER.error(
-                        "calling execute_out_of_event_loop with kwargs not supported",
-                        stack_info=True,
-                    )
-                else:
-                    XTEventLoopProtector.hass.async_add_executor_job(callback, *args)
+                XTEventLoopProtector.hass.async_add_executor_job(
+                    partial(callback, *args, **kwargs)
+                )
 
     @staticmethod
     @callback
@@ -97,11 +93,12 @@ class XTEventLoopProtector:
 
 
 class XTThread(threading.Thread):
+
     def __init__(self, callable, immediate_start: bool = False, *args, **kwargs):
         self.callable = callable
         self.immediate_start = immediate_start
         self.exception: Exception | None = None
-        super().__init__(target=self.call_thread, args=args, kwargs=kwargs)
+        super().__init__(target=self.call_thread, daemon=True, args=args, kwargs=kwargs)
 
     def call_thread(self, *args, **kwargs):
         try:

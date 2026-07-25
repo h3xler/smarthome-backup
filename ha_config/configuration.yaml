@@ -74,6 +74,13 @@ mqtt:
       value_template: "{{ 'on' if value_json.output == true else 'off' }}"
       state_on: "on"
       state_off: "off"
+      availability:
+        - topic: "shelly-mutfak/online"
+          payload_available: "true"
+          payload_not_available: "false"
+      optimistic: false
+      qos: 1
+      retain: false
       icon: "mdi:valve"
 
   # ---------------------------------------------------------
