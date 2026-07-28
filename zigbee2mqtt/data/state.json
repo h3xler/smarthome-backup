@@ -50,11 +50,11 @@
         "linkquality": 164
     },
     "0xa4c138a502f8a531": {
-        "occupancy": true,
+        "occupancy": false,
         "tamper": false,
         "battery_low": false,
-        "illuminance": 38,
-        "target_distance": 1.46,
+        "illuminance": 0,
+        "target_distance": 0,
         "shield_range": 1,
         "detection_range": 2.9,
         "entry_sensitivity": 40,
@@ -78,8 +78,8 @@
         "occupancy": true,
         "tamper": false,
         "battery_low": false,
-        "illuminance": 1,
-        "target_distance": 3.35,
+        "illuminance": 0,
+        "target_distance": 3.41,
         "entry_sensitivity": 70,
         "entry_distance": 5.4,
         "departure_delay": 5,
@@ -100,7 +100,7 @@
         "linkquality": 232
     },
     "0xf082c0fffe130f00": {
-        "state": "ON",
+        "state": "OFF",
         "update": {
             "state": "idle",
             "installed_version": 4110,
