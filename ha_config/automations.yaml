@@ -104,95 +104,6 @@
     entity_id: 09f78bc4be6343023ddc2f74dbed6030
     domain: switch
   mode: single
-- id: '1769198817487'
-  alias: mutfagin isigini ac insan algiladiginda
-  description: ''
-  triggers:
-  - trigger: state
-    entity_id:
-    - binary_sensor.mutfak_insan_sensoru_occupancy
-    to:
-    - 'on'
-  conditions:
-  - condition: numeric_state
-    entity_id: sensor.mutfak_insan_sensoru_illuminance
-    enabled: true
-    below: 3
-  actions:
-  - type: turn_on
-    device_id: 31a25eeae114d69a750abcb0a0443dcf
-    entity_id: 5ad51a9f3f44eb80bda385eb094b03a9
-    domain: switch
-  mode: single
-- id: '1769199674574'
-  alias: mutfakta kimse yoksa kapat
-  description: ''
-  triggers:
-  - trigger: state
-    entity_id:
-    - binary_sensor.mutfak_insan_sensoru_occupancy
-    to:
-    - 'off'
-  conditions: []
-  actions:
-  - type: turn_off
-    device_id: 31a25eeae114d69a750abcb0a0443dcf
-    entity_id: 5ad51a9f3f44eb80bda385eb094b03a9
-    domain: switch
-  - type: turn_off
-    device_id: 31a25eeae114d69a750abcb0a0443dcf
-    entity_id: b3c881bef16d030fc6a6a3100482a781
-    domain: switch
-  - type: turn_off
-    device_id: 31a25eeae114d69a750abcb0a0443dcf
-    entity_id: bae25852069235995ea12e25e861898c
-    domain: switch
-  mode: single
-- id: '1769202534089'
-  alias: banyo isigini ac insan algilandiginda
-  description: ''
-  triggers:
-  - trigger: state
-    entity_id:
-    - binary_sensor.banyo_insan_sensoru_occupancy
-    to:
-    - 'on'
-  - trigger: state
-    entity_id:
-    - sensor.banyo_insan_sensoru_debug_distance
-    to:
-  - trigger: state
-    entity_id:
-    - number.banyo_insan_sensoru_entry_distance
-    to:
-  - trigger: state
-    entity_id:
-    - sensor.banyo_insan_sensoru_target_distance
-    to:
-  conditions:
-  - condition: numeric_state
-    entity_id: sensor.banyo_insan_sensoru_illuminance
-    enabled: true
-    below: 3
-  - condition: not
-    conditions:
-    - condition: time
-      after: 02:00:00
-      before: 07:00:00
-      weekday:
-      - sun
-      - mon
-      - tue
-      - wed
-      - thu
-      - fri
-      - sat
-  actions:
-  - type: turn_on
-    device_id: 76685cab46f2cb09ed2cc5dd14c095d8
-    entity_id: c8cd994bf09b684aa025fa6126c2117b
-    domain: light
-  mode: single
 - id: '1769202612265'
   alias: banyonun isigini kimse yoksa kapat
   description: ''
@@ -447,7 +358,7 @@
   - choose:
     - conditions:
       - condition: template
-        value_template: "{{ not is_state('switch.mutfak_su_vanasi', 'on') }}"
+        value_template: '{{ not is_state(''switch.mutfak_su_vanasi'', ''on'') }}'
       sequence:
       - stop: Vana kapalı/bilinmiyor — tüm sayaçlar iptal.
     - conditions:
@@ -772,34 +683,22 @@
   alias: Girişte kimse yoksa ayna ışığıni kapat
   description: ''
   triggers:
-  - type: not_occupied
-    device_id: 8ad77f951bd0382ea565c44d8d54daf3
-    entity_id: 354ce086c80bc1c2ec1aaeab66389579
-    domain: binary_sensor
-    trigger: device
-  - type: value
-    device_id: 8ad77f951bd0382ea565c44d8d54daf3
-    entity_id: c5cdcbd77efe9eae4f427ffbf3eeb296
-    domain: sensor
-    trigger: device
-    above: 0
-    below: 0
-    enabled: false
-  - trigger: state
-    entity_id:
-    - binary_sensor.giris_insan_sensoru_occupancy
-    to:
-    - 'off'
-  - type: value
-    device_id: 8ad77f951bd0382ea565c44d8d54daf3
-    entity_id: c5cdcbd77efe9eae4f427ffbf3eeb296
-    domain: sensor
-    trigger: device
-    below: 0
   - trigger: numeric_state
     entity_id:
     - sensor.giris_insan_sensoru_target_distance
-    below: 0
+    above: 2.8
+    below: 3.8
+  - trigger: numeric_state
+    entity_id:
+    - sensor.giris_insan_sensoru_target_distance
+    above: 1
+    below: 2.8
+    enabled: false
+  - trigger: occupancy.cleared
+    target:
+      device_id: 8ad77f951bd0382ea565c44d8d54daf3
+    options:
+      behavior: each
   conditions: []
   actions:
   - type: turn_off
@@ -811,49 +710,6 @@
     target:
       entity_id: light.giris_ayna_isigi
     data: {}
-  mode: single
-- id: '1772555597810'
-  alias: 'Girişte birisi varsa ayna ışığını aç '
-  description: ''
-  triggers:
-  - trigger: state
-    entity_id:
-    - binary_sensor.giris_insan_sensoru_occupancy
-    to:
-    - 'on'
-  - trigger: state
-    entity_id:
-    - sensor.giris_insan_sensoru_debug_distance
-    to:
-  - trigger: state
-    entity_id:
-    - number.giris_insan_sensoru_entry_distance
-    to:
-  - trigger: state
-    entity_id:
-    - sensor.giris_insan_sensoru_target_distance
-    to:
-  conditions:
-  - condition: numeric_state
-    entity_id: sensor.giris_insan_sensoru_illuminance
-    enabled: true
-    below: 6
-  - condition: time
-    after: '10:00:00'
-    before: '23:00:00'
-    weekday:
-    - sun
-    - mon
-    - tue
-    - wed
-    - thu
-    - fri
-    - sat
-  actions:
-  - type: turn_on
-    device_id: 790fe2fa52b2d549454711c038ff12b3
-    entity_id: da3a81b5194d86bd6a9fb39fcf48b1a4
-    domain: light
   mode: single
 - id: '1772556209939'
   alias: Aynanin uzağındayken ışığı arttır 3.25-8
@@ -933,7 +789,7 @@
     to: 'on'
   conditions:
   - condition: template
-    value_template: "{{ not is_state('switch.mutfak_su_vanasi', 'on') }}"
+    value_template: '{{ not is_state(''switch.mutfak_su_vanasi'', ''on'') }}'
   - condition: not
     conditions:
     - condition: state
@@ -950,11 +806,11 @@
     - conditions:
       - condition: state
         entity_id: switch.mutfak_su_vanasi
-        state: 'unknown'
+        state: unknown
       sequence:
       - action: mqtt.publish
         data:
-          topic: "shelly-mutfak/rpc"
+          topic: shelly-mutfak/rpc
           payload: '{"id":98,"src":"shelly-mutfak/ha-sync","method":"Switch.GetStatus","params":{"id":0}}'
           qos: 1
       - delay: 00:00:02
@@ -1014,11 +870,16 @@
   alias: Girişte birisi varsa ayna ışığını aç yeni
   description: ''
   triggers:
-  - type: occupied
-    device_id: 8ad77f951bd0382ea565c44d8d54daf3
-    entity_id: 354ce086c80bc1c2ec1aaeab66389579
-    domain: binary_sensor
-    trigger: device
+  - trigger: numeric_state
+    entity_id:
+    - sensor.giris_insan_sensoru_target_distance
+    above: 3.8
+    below: 10
+  - trigger: numeric_state
+    entity_id:
+    - sensor.giris_insan_sensoru_target_distance
+    above: 1
+    below: 2.8
   conditions:
   - condition: numeric_state
     entity_id: sensor.giris_insan_sensoru_illuminance
@@ -1078,11 +939,11 @@
   alias: 'Mutfak ışığını aç insan algıladığında yeni '
   description: ''
   triggers:
-  - type: occupied
-    device_id: 0f8a4c151c90f4fdaa115521e5ff1ee7
-    entity_id: 39ce6b5d11fc145529773ad7b77c954e
-    domain: binary_sensor
-    trigger: device
+  - trigger: state
+    entity_id:
+    - sensor.mutfak_insan_sensoru_target_distance
+    from:
+    to:
   conditions:
   - condition: numeric_state
     entity_id: sensor.mutfak_insan_sensoru_illuminance
@@ -1119,14 +980,14 @@
     domain: switch
   mode: single
 - id: '1774897811185'
-  alias: 'Salon imsan sensörü ışık aç yeni '
+  alias: 'Salon insan sensörü ışık aç yeni '
   description: ''
   triggers:
-  - type: occupied
-    device_id: ce144e0f763afe34782b794a807ee68f
-    entity_id: 3431ff3e1d2c5040395ef4b16139f1f8
-    domain: binary_sensor
-    trigger: device
+  - trigger: state
+    entity_id:
+    - sensor.salon_insan_sensoru_target_distance
+    from:
+    to:
   conditions:
   - condition: numeric_state
     entity_id: sensor.salon_insan_sensoru_illuminance
@@ -1173,8 +1034,8 @@
     entity_id: 380b13857e2397631e019b7535e8c7e0
     domain: switch
   mode: single
-- id: 'vana_state_sync'
-  alias: "Vana — Forced RPC Status Sync"
+- id: vana_state_sync
+  alias: Vana — Forced RPC Status Sync
   description: 'HA start, MQTT availability up ve her 5dk RPC Switch.GetStatus publish.
     Cihaz state degismese de status_topic refresh tetikler. Unknown penceresini kapatir.
 
@@ -1183,7 +1044,7 @@
   - trigger: homeassistant
     event: start
   - trigger: time_pattern
-    minutes: '/5'
+    minutes: /5
   - trigger: mqtt
     topic: shelly-mutfak/online
     payload: 'true'
@@ -1194,8 +1055,8 @@
       payload: '{"id":99,"src":"shelly-mutfak/ha-sync","method":"Switch.GetStatus","params":{"id":0}}'
       qos: 1
   mode: single
-- id: 'vana_unknown_alert'
-  alias: "Vana — Unknown 5dk asili kalirsa uyari"
+- id: vana_unknown_alert
+  alias: Vana — Unknown 5dk asili kalirsa uyari
   description: 'Vana state 5 dakikadan uzun unknown/unavailable kalirsa kullaniciya
     push at. Erken uyari.
 
@@ -1210,14 +1071,16 @@
   actions:
   - action: notify.mobile_app_sm_s901e
     data:
-      title: "Vana Durumu Bilinmiyor"
-      message: "Mutfak Su Vanasi 5dk+ unknown. Shelly/MQTT baglantisi kontrol et."
+      title: Vana Durumu Bilinmiyor
+      message: Mutfak Su Vanasi 5dk+ unknown. Shelly/MQTT baglantisi kontrol et.
       data:
         priority: high
   mode: single
-- id: 'vana_state_relay'
-  alias: "Vana — RPC reply -> state_topic relay"
-  description: 'Shelly Gen2 RPC GetStatus cevabini ha-sync/rpc topic dinler, result objesini status/switch:0 topic uzerinden re-publish eder. MQTT switch state_topic boslugunu kapatir.
+- id: vana_state_relay
+  alias: Vana — RPC reply -> state_topic relay
+  description: 'Shelly Gen2 RPC GetStatus cevabini ha-sync/rpc topic dinler, result
+    objesini status/switch:0 topic uzerinden re-publish eder. MQTT switch state_topic
+    boslugunu kapatir.
 
     '
   triggers:
@@ -1225,11 +1088,11 @@
     topic: shelly-mutfak/ha-sync/rpc
   conditions:
   - condition: template
-    value_template: "{{ trigger.payload_json.result.output is defined }}"
+    value_template: '{{ trigger.payload_json.result.output is defined }}'
   actions:
   - action: mqtt.publish
     data:
       topic: shelly-mutfak/status/switch:0
-      payload: "{{ {'output': trigger.payload_json.result.output} | tojson }}"
+      payload: '{{ {''output'': trigger.payload_json.result.output} | tojson }}'
       qos: 1
   mode: queued
