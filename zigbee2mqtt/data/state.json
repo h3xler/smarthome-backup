@@ -28,7 +28,7 @@
         "occupancy": true,
         "tamper": false,
         "battery_low": false,
-        "target_distance": 4.01,
+        "target_distance": 4.12,
         "illuminance": 0,
         "entry_sensitivity": 80,
         "block_time": 0.5,
