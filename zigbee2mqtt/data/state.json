@@ -79,7 +79,7 @@
         "tamper": false,
         "battery_low": false,
         "illuminance": 0,
-        "target_distance": 3.57,
+        "target_distance": 3.64,
         "entry_sensitivity": 20,
         "entry_distance": 5.4,
         "departure_delay": 5,
