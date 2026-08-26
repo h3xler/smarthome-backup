@@ -964,6 +964,11 @@
     entity_id: 39ce6b5d11fc145529773ad7b77c954e
     domain: binary_sensor
     trigger: device
+  - trigger: occupancy.cleared
+    target:
+      device_id: 0f8a4c151c90f4fdaa115521e5ff1ee7
+    options:
+      behavior: each
   conditions: []
   actions:
   - type: turn_off
