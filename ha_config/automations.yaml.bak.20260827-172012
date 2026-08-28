@@ -941,27 +941,18 @@
   triggers:
   - trigger: state
     entity_id:
-    - binary_sensor.mutfak_insan_sensoru_occupancy
-    from: 'off'
-    to: 'on'
+    - sensor.mutfak_insan_sensoru_target_distance
+    not_from:
+    - unavailable
+    - unknown
+    not_to:
+    - unavailable
+    - unknown
   conditions:
   - condition: numeric_state
     entity_id: sensor.mutfak_insan_sensoru_illuminance
     enabled: true
     below: 3
-  - condition: not
-    conditions:
-    - condition: time
-      after: 02:00:00
-      before: 07:15:00
-      weekday:
-      - sun
-      - mon
-      - tue
-      - wed
-      - thu
-      - fri
-      - sat
   actions:
   - type: turn_on
     device_id: 31a25eeae114d69a750abcb0a0443dcf

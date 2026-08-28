@@ -941,9 +941,13 @@
   triggers:
   - trigger: state
     entity_id:
-    - binary_sensor.mutfak_insan_sensoru_occupancy
-    from: 'off'
-    to: 'on'
+    - sensor.mutfak_insan_sensoru_target_distance
+    not_from:
+    - unavailable
+    - unknown
+    not_to:
+    - unavailable
+    - unknown
   conditions:
   - condition: numeric_state
     entity_id: sensor.mutfak_insan_sensoru_illuminance

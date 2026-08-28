@@ -4,7 +4,7 @@
         "tamper": false,
         "battery_low": false,
         "target_distance": 0,
-        "illuminance": 0,
+        "illuminance": 43,
         "entry_sensitivity": 80,
         "entry_distance": 5.8,
         "departure_delay": 5,
@@ -75,11 +75,11 @@
         "linkquality": 176
     },
     "0xa4c138237cd8182b": {
-        "occupancy": true,
+        "occupancy": false,
         "tamper": false,
         "battery_low": false,
         "illuminance": 0,
-        "target_distance": 3.57,
+        "target_distance": 0,
         "entry_sensitivity": 20,
         "entry_distance": 5.4,
         "departure_delay": 5,
