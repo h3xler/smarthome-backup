@@ -75,11 +75,11 @@
         "linkquality": 176
     },
     "0xa4c138237cd8182b": {
-        "occupancy": false,
+        "occupancy": true,
         "tamper": false,
         "battery_low": false,
         "illuminance": 0,
-        "target_distance": 0,
+        "target_distance": 3.5,
         "entry_sensitivity": 20,
         "entry_distance": 5.4,
         "departure_delay": 5,
