@@ -25,11 +25,11 @@
         "linkquality": 132
     },
     "0xa4c1383c83380ed2": {
-        "occupancy": true,
+        "occupancy": false,
         "tamper": false,
         "battery_low": false,
-        "target_distance": 3.99,
-        "illuminance": 96,
+        "target_distance": 0,
+        "illuminance": 0,
         "entry_sensitivity": 80,
         "block_time": 0.5,
         "debug_mode": "OFF",
@@ -75,11 +75,11 @@
         "linkquality": 176
     },
     "0xa4c138237cd8182b": {
-        "occupancy": true,
+        "occupancy": false,
         "tamper": false,
         "battery_low": false,
-        "illuminance": 1,
-        "target_distance": 3.57,
+        "illuminance": 0,
+        "target_distance": 0,
         "entry_sensitivity": 20,
         "entry_distance": 5.4,
         "departure_delay": 5,
@@ -122,7 +122,7 @@
         "linkquality": 232
     },
     "0xa4c13886a6b25554": {
-        "state_left": "ON",
+        "state_left": "OFF",
         "countdown_left": 0,
         "state_right": "OFF",
         "countdown_right": 0,
