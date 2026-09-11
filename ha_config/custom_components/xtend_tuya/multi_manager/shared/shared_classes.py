@@ -50,7 +50,7 @@ class DeviceWatcher:
             # "eb7390e135cc5cd63213qg": XTDeviceWatcherCategory.MQTT,
             # "vdevo172985271302839": XTDeviceWatcherCategory.PLATFORM_EVENT | XTDeviceWatcherCategory.VIRTUAL_STATE,
             # "bf022344b6e0cfd5dafh8e": XTDeviceWatcherCategory.MQTT,
-            XTDeviceWatcherSpecialDevice.NOT_LINKED_TO_A_DEVICE: XTDeviceWatcherCategory.IOT_API,
+            ##XTDeviceWatcherSpecialDevice.NOT_LINKED_TO_A_DEVICE: XTDeviceWatcherCategory.IOT_API | XTDeviceWatcherCategory.WEBRTC,
             # "vdevo172985271302839": XTDeviceWatcherCategory.PLATFORM_LOCK,
             # "ebf857472d1a0bd943jqag": XTDeviceWatcherCategory.MQTT | XTDeviceWatcherCategory.IOT_API | XTDeviceWatcherCategory.SHARING_API | XTDeviceWatcherCategory.STATUS_CHANGES
             # "bf970988b7a2d61f1fvhts": XTDeviceWatcherCategory.PLATFORM_LOCK | XTDeviceWatcherCategory.MQTT | XTDeviceWatcherCategory.IOT_API | XTDeviceWatcherCategory.SHARING_API | XTDeviceWatcherCategory.STATUS_CHANGES,
@@ -346,6 +346,24 @@ class XTDevice(TuyaDevice):
 
     def set_device_map(self, device_map: XTDeviceMap):
         self.device_map = device_map
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> XTDevice:
+        # A device references its whole XTDeviceMap, and original_device links
+        # it to another live device. A naive deepcopy follows both and copies
+        # the entire device inventory for every single device copy — on a real
+        # account this turned each merge_devices() backup into a copy of all
+        # devices and pegged the event loop for minutes during setup.
+        # A copy is a data snapshot: drop the live links instead of copying
+        # the world behind them.
+        cls = self.__class__
+        new = cls.__new__(cls)
+        memo[id(self)] = new
+        for key, value in self.__dict__.items():
+            if key in ("device_map", "original_device"):
+                object.__setattr__(new, key, None)
+            else:
+                object.__setattr__(new, key, copy.deepcopy(value, memo))
+        return new
 
     def __setattr__(self, attr, value):
         super().__setattr__(attr, value)

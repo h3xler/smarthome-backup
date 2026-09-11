@@ -514,6 +514,9 @@
             "blind": {
                 "name": "Blind"
             },
+            "window_opener": {
+                "name": "Window opener"
+            },
             "curtain": {
                 "name": "Curtain"
             },
@@ -1636,6 +1639,7 @@
                     "auto": "Automatic",
                     "door_open": "Door open",
                     "door_operate": "Door operate",
+                    "ticket_flow": "Ticket flow",
                     "dpcode_command": "DPcode command"
                 }
             }
@@ -2791,6 +2795,7 @@
                     "auto": "Automatic",
                     "door_open": "Door open",
                     "door_operate": "Door operate",
+                    "ticket_flow": "Ticket flow",
                     "dpcode_command": "DPcode command"
                 }
             }

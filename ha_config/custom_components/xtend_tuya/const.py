@@ -152,6 +152,10 @@ class AllowedPlugins:
         return [MESSAGE_SOURCE_TUYA_SHARING, MESSAGE_SOURCE_TUYA_IOT]
 
 
+class XTWebRTCStreamQuality(IntEnum):
+    HIGH_QUALITY = 0
+    LOW_QUALITY = 1
+
 class XTGlobalEvents(StrEnum):
     LOCK_UNLOCKED = "LOCK_UNLOCKED"
 
@@ -195,6 +199,7 @@ class XTLockingMechanism(StrEnum):
     AUTO = "auto"
     DOOR_OPEN = "door_open"
     DOOR_OPERATE = "door_operate"
+    TICKET_FLOW = "ticket_flow"
     DPCODE_COMMAND = "dpcode_command"
 
     def get_human_name(self, value: str) -> str:
@@ -205,6 +210,8 @@ class XTLockingMechanism(StrEnum):
                 return "door_open API"
             case XTLockingMechanism.DOOR_OPERATE:
                 return "door_operate API"
+            case XTLockingMechanism.TICKET_FLOW:
+                return "Ticket flow API"
             case XTLockingMechanism.DPCODE_COMMAND:
                 return "DPCode command"
             case _:
@@ -255,6 +262,7 @@ class XTDeviceWatcherCategory(Flag):
     XT_PERFORMANCE = auto()
     DEBUG = auto()
     STATUS_CHANGES = auto()
+    WEBRTC = auto()
 
     @classmethod
     def all_enum_values(cls) -> list[XTDeviceWatcherCategory]:
@@ -1137,7 +1145,9 @@ class XTDPCode(StrEnum):
     WATER_ONCE = "water_once"
     WATER_TOTAL = "water_total"
     WATER_USE_DATA = "water_use_data"
+    WD_CONTROL = "wd_control"
     WD_DETECTION = "wd_detection"
+    WD_PERCENT_CONTROL = "wd_percent_control"
     WEATHER_SWITCH = "weather_switch"
     WINDSHAKE = "windshake"
     WINDSHAKE1 = "windshake1"
@@ -1224,6 +1234,7 @@ DPCODE_PREFERED_DEVICE_CLASS: dict[str, str | None] = {
     "battery_state": "battery",
     "battery_value": "battery",
     "residual_electricity": "battery",
+    "tr_vbat": "battery",
     "va_battery": "battery",
     "wireless_electricity": "battery",
     "co_value": "carbon_dioxide",
@@ -1268,6 +1279,7 @@ DPCODE_PREFERED_DEVICE_CLASS: dict[str, str | None] = {
     "humidity_now": "humidity",
     "humidity_set": "humidity",
     "humidity_value": "humidity",
+    "tr_humidity": "humidity",
     "huid_revise": "humidity",
     "maxhum_set": "humidity",
     "minihum_set": "humidity",

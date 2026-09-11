@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import partial
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import dispatcher_send
 from homeassistant.helpers import device_registry as dr
@@ -23,6 +24,7 @@ class MultiDeviceListener:
         updated_status_properties: list[str] | None = None,
         dp_timestamps: dict | None = None,
     ):
+        self.sync_device_registry_name(device)
         signal_list: list[str] = []
         for account in self.multi_manager.accounts.values():
             signal_list = util.append_lists(
@@ -49,6 +51,29 @@ class MultiDeviceListener:
                 # )
                 pass
 
+    def sync_device_registry_name(self, device: sh.XTDevice) -> None:
+        """Propagate a Tuya-side rename to the HA device registry.
+
+        The Tuya libraries only update XTDevice.name in memory on a
+        nameUpdate MQTT event; the registry entry keeps the name it was
+        created with. A user rename inside HA (name_by_user) still takes
+        display precedence and is left untouched.
+        """
+        if not device.name:
+            return
+        device_registry = dr.async_get(self.hass)
+        for device_entry in device_registry.async_get_devices(
+            identifiers={(DOMAIN_ORIG, device.id), (DOMAIN, device.id)}
+        ):
+            if device_entry.name != device.name:
+                self.hass.add_job(
+                    partial(
+                        device_registry.async_update_device,
+                        device_entry.id,
+                        name=device.name,
+                    )
+                )
+
     def add_device(self, device: sh.XTDevice):
         self.add_device_by_id(device.id)
 
@@ -67,7 +92,7 @@ class MultiDeviceListener:
                 LOGGER.exception(e)
                 errors.append(e)
         if errors:
-            raise ExceptionGroup("add_device_by_id signal dispatch failed", errors)
+            raise Exception("add_device_by_id signal dispatch failed", errors)
 
     def remove_device(self, device_id: str):
         device_registry = dr.async_get(self.hass)
