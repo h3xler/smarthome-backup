@@ -27,6 +27,12 @@ recorder:
       - sensor.clock* # Saat sensörünü kaydetme
       - sensor.date*
 
+# 👇 HTTP AYARLARI (EN BAŞA, EN SOLA YAZILMALI) 👇
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.16.0.0/12  # Standart Docker Ağ Aralığı
+    - 127.0.0.1      # Localhost
 
 google_assistant:
   project_id: homeassistanto-15024
